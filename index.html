@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AnimeKaergsty - Streaming Descentralizado</title>
+    <style>
+      body { font-family: Arial, sans-serif; background-color: #121212; color: #ffffff; padding: 20px; }
+      .container { max-width: 600px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 8px; }
+      input, button { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+      button { background-color: #2481cc; color: white; border: none; cursor: pointer; font-weight: bold; }
+      button:hover { background-color: #1d6fa5; }
+      #video-container { display: none; margin-top: 20px; }
+      video { width: 100%; border-radius: 8px; }
+      .hidden { display: none; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Bienvenido a AnimeKaergsty</h1>
+      
+      <!-- SECCIÓN DE LOGIN -->
+      <div id="login-section">
+        <p>Inicia sesión con tu Telegram para empezar a ver.</p>
+        
+        <div id="step-phone">
+          <input type="text" id="phone-input" placeholder="Tu número con código de país (Ej: +34600000000)" />
+          <button id="btn-send-code">Enviar Código</button>
+        </div>
+
+        <div id="step-code" class="hidden">
+          <input type="text" id="code-input" placeholder="Código de Telegram" />
+          <button id="btn-verify-code">Verificar Código</button>
+        </div>
+
+        <div id="step-password" class="hidden">
+          <input type="password" id="password-input" placeholder="Tu contraseña de 2FA (si tienes)" />
+          <button id="btn-verify-password">Verificar Contraseña</button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN DEL REPRODUCTOR (Oculta hasta iniciar sesión) -->
+      <div id="video-container">
+        <h2>Capítulo 200</h2>
+        <video id="reproductor" controls width="100%">
+          Tu navegador no soporta el elemento de video.
+        </video>
+      </div>
+    </div>
+
+    <!-- Conectamos nuestro archivo JavaScript -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
