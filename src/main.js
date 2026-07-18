@@ -97,7 +97,7 @@ btnSendCode.addEventListener("click", async () => {
     
     // Ocultamos el login y mostramos el área del video
     loginSection.classList.add("hidden");
-    videoContainer.style.display = "block";
+    videoContainer.classList.remove("hidden");
 
     buscarVideo("");
 
@@ -113,7 +113,7 @@ if (savedSession) {
   console.log("Sesión encontrada. Conectando silenciosamente...");
   client.connect().then(() => {
     loginSection.classList.add("hidden");
-    videoContainer.style.display = "block";
+    videoContainer.classList.remove("hidden");
 
     // LECTURA DINÁMICA DE LA URL
     // Extraemos el número de la ruta (ej. /2726 se convierte en 2726)
