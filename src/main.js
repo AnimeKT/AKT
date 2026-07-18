@@ -243,7 +243,7 @@ navigator.serviceWorker.addEventListener('message', async (event) => {
     if (parts[1]) end = parseInt(parts[1], 10); 
     
     // Regla de Oro: Descargamos máximo 3MB a la vez para no trabar el navegador
-    const CHUNK_SIZE = 3 * 1024 * 1024; // 3 MB
+    const CHUNK_SIZE = 1 * 1024 * 1024; // 3 MB
     // Hacemos que el final sea el menor entre: lo que pide el navegador, nuestro límite de 3MB o el fin del archivo
     end = Math.min(end, start + CHUNK_SIZE - 1, videoSeleccionado.size - 1);
     
