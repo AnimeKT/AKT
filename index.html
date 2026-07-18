@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AnimeKaergsty - Premium</title>
     <style>
+        /* Estilos exactos copiados de tu diseño original */
         :root {
             --background-color: #181818;
             --surface-color: #212121;
@@ -22,19 +23,18 @@
             min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;
         }
 
-        /* Estilos para el Login */
+        /* Estilos para el Login (Mantenemos los de tu versión anterior para que funcione la pantalla inicial) */
         .login-card { background: var(--surface-color); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; max-width: 400px; width: 100%; }
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #444; background: #333; color: white; box-sizing: border-box; }
         button.action-btn { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px;}
         button.action-btn:hover { filter: brightness(1.1); }
         .hidden { display: none !important; }
 
-        /* Estilos del Reproductor */
         .header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 1100px; }
-        h1 { margin: 0; font-size: 24px; font-weight: 600; }
-        h2 { margin: 10px 0 0 0; color: var(--secondary-text-color); font-size: 18px; font-weight: normal; background: var(--surface-color); padding: 15px; border-radius: 10px; }
+        h1 { margin: 0; font-size: 22px; font-weight: 600; }
+        h2 { margin: 10px 0 0 0; color: var(--secondary-text-color); font-size: 16px; font-weight: normal; background: var(--surface-color); padding: 15px; border-radius: 10px; }
 
-        .player-section { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 1100px; gap: 20px; }
+        .player-section { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 1400px; gap: 20px; }
         .nav-btn { background: transparent; color: white; border: none; font-size: 40px; cursor: pointer; transition: 0.2s; padding: 10px; }
         .nav-btn:hover:not(:disabled) { color: var(--primary-color); transform: scale(1.2); }
         .nav-btn:disabled { opacity: 0.15; cursor: default; }
@@ -49,76 +49,64 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: flex;
         }
-        video { width: 100%; display: block; outline: none; border-radius: 12px; }
+        video { width: 100%; display: block; outline: none; cursor: pointer; }
 
-        /* === NUEVOS ESTILOS DEL REPRODUCTOR PERSONALIZADO === */
-        
-        /* Contenedor flotante de controles */
+        /* Controles flotantes */
         .custom-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
-            padding: 8px 15px 4px 15px; /* Relleno más delgado */
-            display: flex;
-            flex-direction: column;
-            gap: 4px; 
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 10;
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+            display: flex; flex-direction: column; padding-top: 30px;
+            opacity: 0; transition: opacity 0.3s ease;
         }
-
         .video-wrapper:hover .custom-controls { opacity: 1; }
 
-        /* Barra de Progreso - Más fina */
+        /* Barra de progreso */
         .progress-bar {
-            width: 100%; height: 3px; background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px; cursor: pointer; position: relative; transition: height 0.1s ease;
+            width: 100%; height: 4px; background: rgba(255, 255, 255, 0.3);
+            cursor: pointer; position: relative; transition: height 0.1s;
         }
-        .progress-bar:hover { height: 6px; }
-        .progress-filled { height: 100%; width: 0%; background-color: var(--primary-color); border-radius: 2px; }
+        .progress-bar:hover { height: 7px; }
+        .progress-filled { width: 0%; height: 100%; background: var(--primary-color); transition: width 0.1s linear; pointer-events: none; }
 
-        /* Fila de Botones Principales */
-        .controls-main { display: flex; align-items: center; gap: 12px; }
+        .controls-main {
+            display: flex; align-items: center; padding: 10px 15px; gap: 15px;
+        }
 
-        /* Botones genéricos - Íconos más pequeños */
+        /* Botones principales y SVGs */
         .control-btn {
-            background: transparent; border: none; color: #fff; cursor: pointer;
-            padding: 2px; display: flex; align-items: center; justify-content: center;
-            transition: transform 0.1s ease, color 0.2s ease;
+            background: transparent; border: none; color: white; font-size: 20px;
+            cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;
+            transition: color 0.2s;
         }
-        .control-btn:hover { transform: scale(1.1); color: var(--primary-color); }
-        .control-btn svg { width: 20px; height: 20px; fill: currentColor; } /* Antes 26px */
-        
-        /* Botón de texto (1x) */
-        .text-btn { font-size: 13px; font-weight: bold; font-family: monospace; width: 30px; }
+        .control-btn svg {
+            width: 24px; height: 24px; fill: currentColor; transition: fill 0.2s;
+        }
+        .control-btn:hover { color: var(--primary-color); }
+        .text-btn { font-size: 16px; font-weight: 600; font-family: monospace; }
 
-        /* Texto de tiempo */
-        .time-display { font-size: 12px; color: #e0e0e0; font-weight: 500; user-select: none; } /* Antes 14px */
-        .spacer { flex-grow: 1; }
-
-        /* Control de Volumen */
+        /* Contenedor de Volumen (Slider oculto) */
         .volume-container { display: flex; align-items: center; gap: 5px; }
         .volume-slider {
-            width: 0px; opacity: 0; height: 4px; accent-color: var(--primary-color);
-            transition: width 0.2s ease, opacity 0.2s ease; cursor: pointer;
+            width: 0px; opacity: 0; transition: width 0.3s, opacity 0.3s;
+            cursor: pointer; height: 4px; accent-color: var(--primary-color);
         }
-        .volume-container:hover .volume-slider { width: 60px; opacity: 1; }
+        .volume-container:hover .volume-slider { width: 70px; opacity: 1; }
 
-        /* Menú de Velocidad */
-        .speed-container { position: relative; display: flex; align-items: center; justify-content: center; }
+        .time-display { font-size: 14px; color: #e0e0e0; font-weight: 500; }
+        .spacer { flex-grow: 1; }
+
+        /* Menú de Velocidad flotante */
+        .speed-container { position: relative; }
         .speed-menu {
-            position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%);
-            background: rgba(33, 33, 33, 0.95); border-radius: 6px; overflow: hidden;
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            background: var(--menu-bg); border-radius: 8px; overflow: hidden;
             display: none; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            min-width: 90px; z-index: 20;
         }
         .speed-menu.active { display: flex; }
         .speed-option {
-            padding: 6px 12px; cursor: pointer; color: white; font-size: 11px; text-align: center; transition: background 0.2s;
+            padding: 10px 20px; cursor: pointer; color: white; font-size: 14px; text-align: center; transition: 0.2s;
         }
-        .speed-option:hover { background: rgba(255,255,255,0.2); color: var(--primary-color); }
+        .speed-option:hover { background: rgba(255,255,255,0.1); color: var(--primary-color); }
     </style>
 </head>
 <body>
