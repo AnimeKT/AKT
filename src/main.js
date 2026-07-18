@@ -80,8 +80,32 @@ btnSendCode.addEventListener("click", async () => {
       password: async () => {
         stepCode.classList.add("hidden");
         stepPassword.classList.remove("hidden");
-        return new Promise((resolve) => {
-          btnVerifyPassword.onclick = () => resolve(passwordInput.value);
+
+        // Devolvemos la contraseña como string limpia y evitamos múltiples clicks
+        return await new Promise((resolve, reject) => {
+          const handler = async (e) => {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            btnVerifyPassword.disabled = true;
+            try {
+              const pwd = String(passwordInput.value || "").trim();
+              if (!pwd) {
+                btnVerifyPassword.disabled = false;
+                return alert("Ingresa la contraseña de 2 pasos");
+              }
+              // Quitamos la pantalla de password para evitar doble envío visual
+              stepPassword.classList.add("hidden");
+              resolve(pwd);
+            } catch (err) {
+              btnVerifyPassword.disabled = false;
+              reject(err);
+            } finally {
+              // Limpiamos el input por seguridad
+              passwordInput.value = "";
+              btnVerifyPassword.removeEventListener('click', handler);
+            }
+          };
+
+          btnVerifyPassword.addEventListener('click', handler);
         });
       },
       onError: (err) => {
