@@ -425,6 +425,66 @@ speedOptions.forEach(option => {
     });
 });
 
+// NUEVO: ATAJOS DE TECLADO (TIPO YOUTUBE)
+// ==========================================
+document.addEventListener("keydown", (e) => {
+    // Solo aplicar los atajos si el usuario ya inició sesión y ve el reproductor[cite: 9]
+    if (document.getElementById("video-container").classList.contains("hidden")) return;
+
+    // Ignorar si el usuario está escribiendo en algún input (por si a futuro añades un buscador)
+    if (document.activeElement.tagName === "INPUT") return;
+
+    // Evitar que la página haga scroll accidentalmente al presionar espacio o flechas
+    if ([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+    }
+
+    const saltarSegundos = 5; // Tiempo que adelanta/retrocede cada flechazo
+
+    switch (e.key) {
+        case "ArrowRight":
+            // Adelantar 5 segundos
+            video.currentTime = Math.min(video.duration || 0, video.currentTime + saltarSegundos);
+            break;
+        case "ArrowLeft":
+            // Retroceder 5 segundos
+            video.currentTime = Math.max(0, video.currentTime - saltarSegundos);
+            break;
+        case " ":
+            // Pausa/Play con la barra espaciadora (reutilizamos tu función)[cite: 9]
+            togglePlay();
+            break;
+        case "ArrowUp":
+            // Subir volumen
+            video.volume = Math.min(1, video.volume + 0.1);
+            video.muted = video.volume === 0;
+            actualizarBarraVolumen(video.volume);
+            break;
+        case "ArrowDown":
+            // Bajar volumen
+            video.volume = Math.max(0, video.volume - 0.1);
+            video.muted = video.volume === 0;
+            actualizarBarraVolumen(video.volume);
+            break;
+        case "f":
+        case "F":
+            // Pantalla completa con la letra F (reutilizamos tu lógica)[cite: 9]
+            if (!document.fullscreenElement) {
+                videoWrapper.requestFullscreen().catch(err => console.error(err));
+            } else {
+                document.exitFullscreen();
+            }
+            break;
+    }
+});
+
+// Función auxiliar para que la barrita visual del volumen se actualice
+// si usamos las flechas del teclado.
+function actualizarBarraVolumen(valor) {
+    volumeSlider.value = valor;
+    volumeSlider.style.background = `linear-gradient(to right, var(--primary-color) ${valor * 100}%, rgba(255, 255, 255, 0.3) ${valor * 100}%)`;
+}
+
 // ==========================================
 // CERRAR SESIÓN
 // ==========================================
