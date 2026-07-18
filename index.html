@@ -50,6 +50,111 @@
             display: flex;
         }
         video { width: 100%; display: block; outline: none; border-radius: 12px; }
+
+        /* === NUEVOS ESTILOS DEL REPRODUCTOR PERSONALIZADO === */
+        
+        /* Contenedor flotante de controles */
+        .custom-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+            padding: 15px 20px 10px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        /* Mostrar controles al pasar el mouse por encima del reproductor */
+        .video-wrapper:hover .custom-controls {
+            opacity: 1;
+        }
+
+        /* Barra de Progreso */
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            transition: height 0.1s ease;
+        }
+        .progress-bar:hover {
+            height: 8px;
+        }
+        .progress-filled {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        /* Fila de Botones Principales */
+        .controls-main {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
+        }
+
+        /* Botones de control genéricos */
+        .control-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s ease;
+        }
+        .control-btn:hover {
+            transform: scale(1.1);
+        }
+        .control-btn svg {
+            width: 26px;
+            height: 26px;
+            fill: currentColor;
+        }
+
+        /* Texto de tiempo (0:00 / 0:00) */
+        .time-display {
+            font-size: 14px;
+            color: #fff;
+            font-weight: 500;
+            user-select: none;
+        }
+
+        /* Empujador para enviar el volumen y fullscreen a la derecha */
+        .spacer {
+            flex-grow: 1;
+        }
+
+        /* Control de Volumen Integrado */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .volume-slider {
+            width: 0px;
+            opacity: 0;
+            height: 4px;
+            accent-color: var(--primary-color);
+            transition: width 0.2s ease, opacity 0.2s ease;
+            cursor: pointer;
+        }
+        /* Desplegar la barra de volumen al pasar el mouse por el contenedor */
+        .volume-container:hover .volume-slider {
+            width: 70px;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>

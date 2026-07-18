@@ -95,11 +95,21 @@ btnSendCode.addEventListener("click", async () => {
     // Guardamos la sesión en el navegador para futuras visitas
     localStorage.setItem("telegram_session", client.session.save());
     
-    // Ocultamos el login y mostramos el área del video
+
+  // Ocultamos el login y mostramos el área del video
     loginSection.classList.add("hidden");
     videoContainer.classList.remove("hidden");
 
-    buscarVideo("");
+    // LECTURA DINÁMICA DE LA URL (Para usuarios que se loguean por 1ra vez)
+    const ruta = window.location.pathname.replace(/\//g, ""); 
+    const topicId = parseInt(ruta, 10);
+
+    if (!isNaN(topicId)) {
+        console.log(`📂 Amigo logueado por 1ra vez. Abriendo Topic: ${topicId}`);
+        buscarVideo("", topicId);
+    } else {
+        buscarVideo(""); // Búsqueda general si no hay link
+    }
 
   } catch (error) {
     console.error("Fallo de conexión:", error);
