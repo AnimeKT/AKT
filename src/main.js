@@ -124,7 +124,7 @@ if (savedSession) {
 
   loginSection.classList.add("hidden");
   videoContainer.classList.remove("hidden");
-    
+
   client.connect().then(() => {
     loginSection.classList.add("hidden");
     videoContainer.classList.remove("hidden");
@@ -409,3 +409,33 @@ speedOptions.forEach(option => {
         speedMenu.classList.remove("active");
     });
 });
+
+// ==========================================
+// CERRAR SESIÓN
+// ==========================================
+const btnLogout = document.getElementById("btn-logout");
+
+if (btnLogout) {
+    // Le agregamos un pequeño efecto hover con JavaScript para que resalte
+    btnLogout.addEventListener("mouseenter", () => {
+        btnLogout.style.backgroundColor = "rgba(255, 85, 85, 0.1)";
+    });
+    btnLogout.addEventListener("mouseleave", () => {
+        btnLogout.style.backgroundColor = "transparent";
+    });
+
+    // Acción de cerrar sesión
+    btnLogout.addEventListener("click", async () => {
+        const confirmar = confirm("¿Estás seguro de que deseas cerrar sesión?");
+        if (confirmar) {
+            // 1. Borramos la llave guardada en el navegador
+            localStorage.removeItem("telegram_session");
+            
+            // 2. Desconectamos el cliente de Telegram
+            await client.disconnect();
+            
+            // 3. Recargamos la página para volver a la pantalla de Login
+            window.location.reload();
+        }
+    });
+}
