@@ -81,9 +81,13 @@ btnSendCode.addEventListener("click", async () => {
         stepCode.classList.add("hidden");
         stepPassword.classList.remove("hidden");
         return new Promise((resolve) => {
-          btnVerifyPassword.onclick = () => resolve(passwordInput.value);
+            btnVerifyPassword.onclick = () => {
+                // FORZAMOS A QUE SEA UN STRING LIMPIO
+                const passValue = passwordInput.value.toString();
+                resolve(passValue);
+            };
         });
-      },
+    },
       onError: (err) => {
         console.error("Error en login:", err);
         alert("Ocurrió un error: " + err.message);
