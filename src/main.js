@@ -455,22 +455,24 @@ if (btnLogout) {
     });
 }
 
-// ==========================================
-// NUEVO: SISTEMA DE LOGIN POR CÓDIGO QR
-// ==========================================
+let qrCodeInstance = null;
+
 async function iniciarLoginQR() {
     try {
         console.log("Iniciando solicitud de Código QR...");
         
-        // signInUserWithQrCode gestiona automáticamente la generación y expiración[cite: 2]
+        // 2. ¡LA CLAVE ESTÁ AQUÍ! Conectamos el cliente a Telegram ANTES de pedir el QR
+        await client.connect();
+        
+        // signInUserWithQrCode gestiona automáticamente la generación y expiración
         await client.signInUserWithQrCode(
-            { apiId, apiHash }, // Usando tus variables[cite: 2]
+            { apiId, apiHash }, // Usando tus variables
             {
                 qrCode: async (code) => {
-                    // 2. IMPORTANTE: Forzamos que sea un Buffer para evitar errores de conversión en el navegador
+                    // 3. Forzamos que sea un Buffer para evitar errores de conversión en el navegador
                     const tokenBuffer = Buffer.from(code.token);
 
-                    // Convertimos a un formato seguro para la URL[cite: 2]
+                    // Convertimos a un formato seguro para la URL
                     const base64Url = tokenBuffer
                         .toString("base64")
                         .replace(/\+/g, "-")
@@ -480,19 +482,17 @@ async function iniciarLoginQR() {
                     const url = `tg://login?token=${base64Url}`;
                     console.log("Nuevo QR generado por Telegram:", url);
 
-                    // 3. Reutilizamos la instancia para evitar el "cuadro en blanco"
+                    // 4. Reutilizamos la instancia para evitar el "cuadro en blanco"
                     if (!qrCodeInstance) {
-                        // Vaciamos por si acaso solo la primera vez[cite: 2]
                         qrContainer.innerHTML = ""; 
                         
-                        // Pintamos el QR en pantalla usando la librería[cite: 2]
                         qrCodeInstance = new QRCode(qrContainer, {
                             text: url,
                             width: 200,
                             height: 200,
                             colorDark: "#000000",
                             colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.L // Nivel "L" es más estable para URLs largas
+                            correctLevel: QRCode.CorrectLevel.L
                         });
                     } else {
                         // Si Telegram manda un QR nuevo, lo actualizamos limpiamente
@@ -503,26 +503,21 @@ async function iniciarLoginQR() {
                 onError: async (err) => {
                     console.error("Error en login QR:", err);
                     alert("Ocurrió un error con el QR. Revisa la consola.");
-                    return true; // Detenemos el intento[cite: 2]
+                    return true; 
                 }
             }
         );
 
-        // ¡Si la promesa llega hasta aquí, es porque el celular escaneó el QR con éxito![cite: 2]
         console.log("¡Conectado exitosamente por Código QR!");
         
-        // Guardamos la sesión en el navegador[cite: 2]
         localStorage.setItem("telegram_session", client.session.save());
         
-        // Ocultamos la pantalla de login y pasamos al video[cite: 2]
         document.getElementById("login-section").classList.add("hidden");
         document.getElementById("video-container").classList.remove("hidden");
 
-        // Lógica de ruteo[cite: 2]
         cargarContenidoInicial();
 
     } catch (error) {
-        // Ignoramos si el usuario cerró o cambió de pestaña[cite: 2]
-        console.log("Flujo QR detenido o cancelado.", error);
+        console.error("Flujo QR detenido o cancelado. Error:", error.message);
     }
 }
