@@ -87,10 +87,27 @@
         /* Contenedor de Volumen (Slider oculto) */
         .volume-container { display: flex; align-items: center; gap: 5px; }
         .volume-slider {
-            width: 0px; opacity: 0; transition: width 0.3s, opacity 0.3s;
-            cursor: pointer; height: 4px; accent-color: var(--primary-color);
+            -webkit-appearance: none;
+            appearance: none;
+            width: 0px; 
+            opacity: 0; 
+            transition: width 0.3s, opacity 0.3s;
+            cursor: pointer; 
+            height: 4px;
+            border-radius: 2px;
+            background: linear-gradient(to right, var(--primary-color) 100%, rgba(255, 255, 255, 0.3) 100%);
         }
         .volume-container:hover .volume-slider { width: 70px; opacity: 1; }
+
+        /* Damos estilo explícito a la "bolita" (thumb) para que coincida con tu diseño */
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary-color);
+        }
 
         .time-display { font-size: 14px; color: #e0e0e0; font-weight: 500; }
         .spacer { flex-grow: 1; }

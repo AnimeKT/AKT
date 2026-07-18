@@ -345,15 +345,25 @@ progressContainer.addEventListener("click", (e) => {
 });
 
 // Control de Volumen
+// Control de Volumen
 volumeSlider.addEventListener("input", (e) => {
-    video.volume = e.target.value;
-    video.muted = e.target.value === "0";
+    const valor = e.target.value;
+    video.volume = valor;
+    video.muted = valor === "0";
+    // MAGIA VISUAL: Pinta la barra exactamente hasta donde esté la bolita
+    volumeSlider.style.background = `linear-gradient(to right, var(--primary-color) ${valor * 100}%, rgba(255, 255, 255, 0.3) ${valor * 100}%)`;
 });
 
 btnMute.addEventListener("click", () => {
     video.muted = !video.muted;
-    volumeSlider.value = video.muted ? 0 : video.volume;
+    const nuevoValor = video.muted ? 0 : video.volume;
+    volumeSlider.value = nuevoValor;
+    // MAGIA VISUAL: Vacía o llena la barra al pulsar Mute
+    volumeSlider.style.background = `linear-gradient(to right, var(--primary-color) ${nuevoValor * 100}%, rgba(255, 255, 255, 0.3) ${nuevoValor * 100}%)`;
 });
+
+// Esto asegura que la barra empiece pintada al 100% cuando cargas la página
+volumeSlider.style.background = `linear-gradient(to right, var(--primary-color) ${volumeSlider.value * 100}%, rgba(255, 255, 255, 0.3) ${volumeSlider.value * 100}%)`;
 
 // Pantalla Completa
 btnFullscreen.addEventListener("click", () => {
