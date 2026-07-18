@@ -1,54 +1,100 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AnimeKaergsty - Streaming Descentralizado</title>
+    <title>AnimeKaergsty - Premium</title>
     <style>
-      body { font-family: Arial, sans-serif; background-color: #121212; color: #ffffff; padding: 20px; }
-      .container { max-width: 600px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 8px; }
-      input, button { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
-      button { background-color: #2481cc; color: white; border: none; cursor: pointer; font-weight: bold; }
-      button:hover { background-color: #1d6fa5; }
-      #video-container { display: none; margin-top: 20px; }
-      video { width: 100%; border-radius: 8px; }
-      .hidden { display: none; }
+        :root {
+            --background-color: #181818;
+            --surface-color: #212121;
+            --primary-text-color: #ffffff;
+            --secondary-text-color: #aaaaaa;
+            --primary-color: #8774e1;
+            --menu-bg: #2b2b2b;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--primary-text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;
+        }
+
+        /* Estilos para el Login */
+        .login-card { background: var(--surface-color); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; max-width: 400px; width: 100%; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #444; background: #333; color: white; box-sizing: border-box; }
+        button.action-btn { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px;}
+        button.action-btn:hover { filter: brightness(1.1); }
+        .hidden { display: none !important; }
+
+        /* Estilos del Reproductor */
+        .header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 1100px; }
+        h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        h2 { margin: 10px 0 0 0; color: var(--secondary-text-color); font-size: 18px; font-weight: normal; background: var(--surface-color); padding: 15px; border-radius: 10px; }
+
+        .player-section { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 1100px; gap: 20px; }
+        .nav-btn { background: transparent; color: white; border: none; font-size: 40px; cursor: pointer; transition: 0.2s; padding: 10px; }
+        .nav-btn:hover:not(:disabled) { color: var(--primary-color); transform: scale(1.2); }
+        .nav-btn:disabled { opacity: 0.15; cursor: default; }
+
+        .video-wrapper {
+            flex-grow: 1; 
+            width: 100%;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex;
+        }
+        video { width: 100%; display: block; outline: none; border-radius: 12px; }
     </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Bienvenido a AnimeKaergsty</h1>
-      
-      <!-- SECCIÓN DE LOGIN -->
-      <div id="login-section">
-        <p>Inicia sesión con tu Telegram para empezar a ver.</p>
+</head>
+<body>
+
+    <!-- SECCIÓN DE LOGIN -->
+    <div id="login-section" class="login-card">
+        <h1>AnimeKaergsty</h1>
+        <p style="color: var(--secondary-text-color);">Inicia sesión para continuar</p>
         
         <div id="step-phone">
-          <input type="text" id="phone-input" placeholder="Tu número con código de país (Ej: +34600000000)" />
-          <button id="btn-send-code">Enviar Código</button>
+            <input type="text" id="phone-input" placeholder="Número (Ej: +34600000000)" />
+            <button id="btn-send-code" class="action-btn">Enviar Código</button>
         </div>
 
         <div id="step-code" class="hidden">
-          <input type="text" id="code-input" placeholder="Código de Telegram" />
-          <button id="btn-verify-code">Verificar Código</button>
+            <input type="text" id="code-input" placeholder="Código de Telegram" />
+            <button id="btn-verify-code" class="action-btn">Verificar</button>
         </div>
 
         <div id="step-password" class="hidden">
-          <input type="password" id="password-input" placeholder="Tu contraseña de 2FA (si tienes)" />
-          <button id="btn-verify-password">Verificar Contraseña</button>
+            <input type="password" id="password-input" placeholder="Contraseña 2FA" />
+            <button id="btn-verify-password" class="action-btn">Entrar</button>
         </div>
-      </div>
-
-      <!-- SECCIÓN DEL REPRODUCTOR (Oculta hasta iniciar sesión) -->
-      <div id="video-container">
-        <h2>Capítulo 200</h2>
-        <video id="reproductor" controls width="100%">
-          Tu navegador no soporta el elemento de video.
-        </video>
-      </div>
     </div>
 
-    <!-- Conectamos nuestro archivo JavaScript -->
+    <!-- SECCIÓN DEL REPRODUCTOR -->
+    <div id="video-container" class="hidden">
+        <div class="header">
+            <h2 id="video-title">Cargando videos...</h2>
+        </div>
+        
+        <div class="player-section">
+            <!-- Flecha Anterior -->
+            <button class="nav-btn" id="btn-prev" disabled>&#10094;</button>
+            
+            <div class="video-wrapper">
+                <!-- Usamos controls nativos por ahora para garantizar la funcionalidad -->
+                <video id="reproductor" controls></video>
+            </div>
+            
+            <!-- Flecha Siguiente -->
+            <button class="nav-btn" id="btn-next" disabled>&#10095;</button>
+        </div>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
-  </body>
+</body>
 </html>

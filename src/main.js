@@ -6,6 +6,9 @@ import { StringSession } from "telegram/sessions";
 
 let videoSeleccionado = null;
 
+let listaDeVideos = []; // Aquí guardaremos todos los videos del Topic
+let indiceActual = 0;
+
 // REGISTRO DEL SERVICE WORKER
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js')
@@ -130,58 +133,84 @@ if (savedSession) {
   });
 }
 // 6. Lógica para buscar videos en el canal o grupo
+// 6. Lógica para buscar la lista de videos
 async function buscarVideo(textoBusqueda, topicId = null) {
   try {
-    // Preparamos los parámetros base de la búsqueda
     const parametrosBusqueda = {
-        peer: "@AnimeKTe", // Actualizado al grupo de tu imagen
+        peer: "@AnimeKTe", 
         q: textoBusqueda, 
         filter: new Api.InputMessagesFilterVideo(), 
-        limit: 10,
+        limit: 50, // Aumentamos el límite para capturar toda la temporada
     };
 
-    // Si detectamos un número en la URL, se lo inyectamos a Telegram
-    if (topicId) {
-        parametrosBusqueda.topMsgId = topicId;
-    }
+    if (topicId) parametrosBusqueda.topMsgId = topicId;
 
-    // Ejecutamos la búsqueda con los parámetros dinámicos
-    const result = await client.invoke(
-      new Api.messages.Search(parametrosBusqueda)
-    );
+    const result = await client.invoke(new Api.messages.Search(parametrosBusqueda));
 
-    if (result.messages.length > 0) {
-        console.log(`¡Encontramos ${result.messages.length} video(s) en esta ruta!`);
+    // Filtramos para asegurarnos de que solo haya mensajes con documentos (videos)
+    listaDeVideos = result.messages.filter(msg => msg.media && msg.media.document);
+
+    if (listaDeVideos.length > 0) {
+        console.log(`¡Encontramos ${listaDeVideos.length} videos en esta lista!`);
         
-        const primerMensaje = result.messages[0];
+        // Telegram devuelve los resultados del más nuevo al más viejo.
+        // Los invertimos para que el Capítulo 1 sea el primero y el Capítulo 2 el siguiente.
+        listaDeVideos.reverse(); 
         
-        if (primerMensaje.media && primerMensaje.media.document) {
-            const videoDoc = primerMensaje.media.document;
-            videoSeleccionado = videoDoc;
-            const videoId = videoDoc.id.toString(); 
-            const videoSize = videoDoc.size; 
-            
-            console.log(`🎬 Preparando video ID: ${videoId} (${(videoSize / (1024 * 1024)).toFixed(2)} MB)`);
-
-            const reproductor = document.getElementById("reproductor");
-            
-            if(reproductor) {
-                reproductor.src = `/stream/${videoId}`;
-                reproductor.preload = "auto"; 
-                console.log("▶️ Reproductor enlazado a la ruta virtual.");
-                
-                reproductor.play().catch(() => {
-                    console.log("Pausa automática: El navegador espera que le des Play manualmente.");
-                });
-            }
-        }
+        indiceActual = 0; // Empezamos por el primer video
+        cargarVideoEnReproductor(); // Llamamos a la nueva función
     } else {
-        console.log("No se encontraron videos en este Topic.");
+        document.getElementById("video-title").textContent = "No se encontraron videos en este tema.";
     }
   } catch (error) {
     console.error("Error buscando el video:", error);
   }
 }
+
+// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
+function cargarVideoEnReproductor() {
+    const mensajeActual = listaDeVideos[indiceActual];
+    const videoDoc = mensajeActual.media.document;
+    
+    videoSeleccionado = videoDoc; // Guardamos para el Service Worker
+    const videoId = videoDoc.id.toString();
+    
+    // 1. Extraer y limpiar el nombre del archivo
+    let nombreOriginal = "Video sin título";
+    const atributoNombre = videoDoc.attributes.find(attr => attr.className === 'DocumentAttributeFilename');
+    if (atributoNombre) nombreOriginal = atributoNombre.fileName;
+    
+    // MAGIA: Cortamos el texto justo donde encuentre un "[" o un "."
+    const nombreLimpio = nombreOriginal.split(/\[|\./)[0].trim(); 
+    
+    // Actualizamos la interfaz
+    document.getElementById("video-title").textContent = nombreLimpio;
+    
+    // 2. Controlar si las flechas deben encenderse o apagarse
+    document.getElementById("btn-prev").disabled = (indiceActual === 0);
+    document.getElementById("btn-next").disabled = (indiceActual === listaDeVideos.length - 1);
+    
+    // 3. Enviar al reproductor
+    const reproductor = document.getElementById("reproductor");
+    reproductor.src = `/stream/${videoId}`;
+    reproductor.preload = "auto";
+    reproductor.play().catch(() => console.log("Play automático bloqueado por el navegador"));
+}
+
+// 4. Lógica de las flechas (Añade esto justo debajo de la función cargarVideoEnReproductor)
+document.getElementById("btn-prev").addEventListener("click", () => {
+    if (indiceActual > 0) {
+        indiceActual--;
+        cargarVideoEnReproductor();
+    }
+});
+
+document.getElementById("btn-next").addEventListener("click", () => {
+    if (indiceActual < listaDeVideos.length - 1) {
+        indiceActual++;
+        cargarVideoEnReproductor();
+    }
+});
 
 // 7. MOTOR DE DESCARGA: Escuchar pedidos del Service Worker
 navigator.serviceWorker.addEventListener('message', async (event) => {
