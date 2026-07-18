@@ -112,29 +112,47 @@ if (savedSession) {
     loginSection.classList.add("hidden");
     videoContainer.style.display = "block";
 
-    buscarVideo("");
+    // LECTURA DINÁMICA DE LA URL
+    // Extraemos el número de la ruta (ej. /2726 se convierte en 2726)
+    const ruta = window.location.pathname.replace(/\//g, ""); 
+    const topicId = parseInt(ruta, 10);
 
-}).catch(error => {
-    // Atrapamos el error TIMEOUT para que no explote en rojo
+    if (!isNaN(topicId)) {
+        console.log(`📂 Abriendo Topic dinámico ID: ${topicId}`);
+        buscarVideo("", topicId); // Pasamos el ID a nuestra función
+    } else {
+        console.log("🏠 Cargando página principal");
+        buscarVideo(""); // Búsqueda general
+    }
+
+  }).catch(error => {
     console.log("Ajustando conexión de Telegram en segundo plano...");
   });
 }
-// 6. Lógica para buscar videos en el canal
-async function buscarVideo(textoBusqueda) {
+// 6. Lógica para buscar videos en el canal o grupo
+async function buscarVideo(textoBusqueda, topicId = null) {
   try {
-    const result = await client.invoke(
-      new Api.messages.Search({
-        peer: "@KaergstyAnime", 
+    // Preparamos los parámetros base de la búsqueda
+    const parametrosBusqueda = {
+        peer: "@AnimeKTe", // Actualizado al grupo de tu imagen
         q: textoBusqueda, 
         filter: new Api.InputMessagesFilterVideo(), 
         limit: 10,
-      })
+    };
+
+    // Si detectamos un número en la URL, se lo inyectamos a Telegram
+    if (topicId) {
+        parametrosBusqueda.topMsgId = topicId;
+    }
+
+    // Ejecutamos la búsqueda con los parámetros dinámicos
+    const result = await client.invoke(
+      new Api.messages.Search(parametrosBusqueda)
     );
 
     if (result.messages.length > 0) {
-        console.log(`¡Encontramos ${result.messages.length} video(s)!`);
+        console.log(`¡Encontramos ${result.messages.length} video(s) en esta ruta!`);
         
-        // Vamos a tomar SOLO el primer video de la lista (índice 0) para reproducirlo
         const primerMensaje = result.messages[0];
         
         if (primerMensaje.media && primerMensaje.media.document) {
@@ -145,29 +163,20 @@ async function buscarVideo(textoBusqueda) {
             
             console.log(`🎬 Preparando video ID: ${videoId} (${(videoSize / (1024 * 1024)).toFixed(2)} MB)`);
 
-            // Capturamos la etiqueta <video> de tu HTML. 
-            // Asegúrate de que en tu index.html la etiqueta video tenga id="reproductor"
             const reproductor = document.getElementById("reproductor");
             
             if(reproductor) {
-            // AQUÍ OCURRE LA MAGIA
-            reproductor.src = `/stream/${videoId}.mp4`;
-            
-            // NOVEDAD: Obligamos al navegador a pedir el mapa del video
-            reproductor.preload = "auto"; 
-            reproductor.muted = true; // <--- ¡AÑADE ESTA LÍNEA!
-            console.log("▶️ Reproductor enlazado a la ruta virtual.");
-            
-            // Intentamos forzar el play automático
-            reproductor.play().catch(() => {
-                console.log("Pausa automática: El navegador espera que le des Play manualmente.");
-            });
-            } else {
-                console.error("No se encontró la etiqueta <video id='reproductor'> en el HTML.");
+                reproductor.src = `/stream/${videoId}`;
+                reproductor.preload = "auto"; 
+                console.log("▶️ Reproductor enlazado a la ruta virtual.");
+                
+                reproductor.play().catch(() => {
+                    console.log("Pausa automática: El navegador espera que le des Play manualmente.");
+                });
             }
         }
     } else {
-        console.log("No se encontraron videos con ese nombre.");
+        console.log("No se encontraron videos en este Topic.");
     }
   } catch (error) {
     console.error("Error buscando el video:", error);
