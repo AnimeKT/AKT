@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AnimeKaergsty</title>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <link rel="icon" type="image/x-icon" href="/favicon.png">
 
     <style>
@@ -141,21 +143,39 @@
     <!-- SECCIÓN DE LOGIN -->
     <div id="login-section" class="login-card">
         <h1>AnimeKaergsty</h1>
-        <p style="color: var(--secondary-text-color);">Inicia sesión para continuar</p>
+        <p style="color: var(--secondary-text-color);">Elige cómo iniciar sesión</p>
         
-        <div id="step-phone">
-            <input type="text" id="phone-input" placeholder="Número (Ej: +34600000000)" />
-            <button id="btn-send-code" class="action-btn">Enviar Código</button>
+        <!-- Pestañas -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button id="tab-phone" class="action-btn" style="margin: 0; background-color: var(--primary-color);">Teléfono</button>
+            <button id="tab-qr" class="action-btn" style="margin: 0; background-color: #444;">Código QR</button>
         </div>
 
-        <div id="step-code" class="hidden">
-            <input type="text" id="code-input" placeholder="Código de Telegram" />
-            <button id="btn-verify-code" class="action-btn">Verificar</button>
+        <!-- FLUJO DE TELÉFONO -->
+        <div id="flow-phone">
+            <div id="step-phone">
+                <input type="text" id="phone-input" placeholder="Número (Ej: +34600000000)" />
+                <button id="btn-send-code" class="action-btn">Enviar Código</button>
+            </div>
+
+            <div id="step-code" class="hidden">
+                <input type="text" id="code-input" placeholder="Código de Telegram" />
+                <button id="btn-verify-code" class="action-btn">Verificar</button>
+            </div>
+
+            <!-- Contenedor de Error 2FA -->
+            <div id="step-password" class="hidden">
+                <p style="color: #ff5555; font-size: 14px; font-weight: bold;">⚠️ El inicio de sesión 2FA no está disponible en la web.</p>
+                <p style="color: var(--secondary-text-color); font-size: 13px;">Usa el inicio de sesión por <b>Código QR</b>.</p>
+            </div>
         </div>
 
-        <div id="step-password" class="hidden">
-            <input type="password" id="password-input" placeholder="Contraseña 2FA" />
-            <button id="btn-verify-password" class="action-btn">Entrar</button>
+        <!-- FLUJO DE QR -->
+        <div id="flow-qr" class="hidden">
+            <p style="font-size: 14px; color: var(--secondary-text-color); margin-bottom: 15px;">Abre Telegram en tu móvil > Ajustes > Dispositivos > Vincular dispositivo</p>
+            <!-- Aquí se pintará el código QR -->
+            <div id="qr-container" style="background: white; padding: 15px; border-radius: 10px; display: inline-block; min-width: 200px; min-height: 200px;">
+            </div>
         </div>
     </div>
 

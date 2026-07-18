@@ -1,7 +1,6 @@
 import { Buffer } from "buffer";
 import bigInt from "big-integer";
-import { Api } from "telegram";
-import { TelegramClient } from "telegram";
+import { Api, TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
 
 let videoSeleccionado = null;
@@ -54,6 +53,28 @@ const btnVerifyPassword = document.getElementById("btn-verify-password");
 const loginSection = document.getElementById("login-section");
 const videoContainer = document.getElementById("video-container");
 
+const tabPhone = document.getElementById("tab-phone");
+const tabQr = document.getElementById("tab-qr");
+const flowPhone = document.getElementById("flow-phone");
+const flowQr = document.getElementById("flow-qr");
+const qrContainer = document.getElementById("qr-container");
+
+tabPhone.addEventListener("click", () => {
+    tabPhone.style.backgroundColor = "var(--primary-color)";
+    tabQr.style.backgroundColor = "#444";
+    flowPhone.classList.remove("hidden");
+    flowQr.classList.add("hidden");
+});
+
+tabQr.addEventListener("click", () => {
+    tabQr.style.backgroundColor = "var(--primary-color)";
+    tabPhone.style.backgroundColor = "#444";
+    flowQr.classList.remove("hidden");
+    flowPhone.classList.add("hidden");
+    iniciarLoginQR(); // Llamamos a generar el QR
+});
+
+
 // 4. Lógica cuando el usuario presiona "Enviar Código"
 btnSendCode.addEventListener("click", async () => {
   const phoneNumber = phoneInput.value;
@@ -79,10 +100,12 @@ btnSendCode.addEventListener("click", async () => {
       // Si el usuario tiene Verificación en 2 Pasos, pedimos la contraseña
       password: async () => {
         stepCode.classList.add("hidden");
-        stepPassword.classList.remove("hidden");
-        return new Promise((resolve) => {
-          btnVerifyPassword.onclick = () => resolve(passwordInput.value);
-        });
+        document.getElementById("step-password").classList.remove("hidden");
+        
+        alert("⚠️ El inicio de sesión con Verificación en 2 Pasos (2FA) no está soportado.\n\nPor favor, cambia a la pestaña de 'Código QR' para iniciar sesión.");
+        
+        // Lanzamos un error forzado para cancelar el flujo de Telegram
+        throw new Error("2FA_NOT_SUPPORTED");
       },
       onError: (err) => {
         console.error("Error en login:", err);
@@ -101,15 +124,7 @@ btnSendCode.addEventListener("click", async () => {
     videoContainer.classList.remove("hidden");
 
     // LECTURA DINÁMICA DE LA URL (Para usuarios que se loguean por 1ra vez)
-    const ruta = window.location.pathname.replace(/\//g, ""); 
-    const topicId = parseInt(ruta, 10);
-
-    if (!isNaN(topicId)) {
-        console.log(`📂 Amigo logueado por 1ra vez. Abriendo Topic: ${topicId}`);
-        buscarVideo("", topicId);
-    } else {
-        buscarVideo(""); // Búsqueda general si no hay link
-    }
+    cargarContenidoInicial();
 
   } catch (error) {
     console.error("Fallo de conexión:", error);
@@ -126,24 +141,24 @@ if (savedSession) {
   videoContainer.classList.remove("hidden");
 
   client.connect().then(() => {
-    loginSection.classList.add("hidden");
-    videoContainer.classList.remove("hidden");
 
-    // LECTURA DINÁMICA DE LA URL
-    // Extraemos el número de la ruta (ej. /2726 se convierte en 2726)
-    const ruta = window.location.pathname.replace(/\//g, ""); 
-    const topicId = parseInt(ruta, 10);
-
-    if (!isNaN(topicId)) {
-        console.log(`📂 Amigo logueado. Abriendo Topic directamente: ${topicId}`);
-        buscarVideo("", topicId);
-    } else {
-        buscarVideo(""); // Búsqueda general si no hay link
-    }
+    cargarContenidoInicial();
 
   }).catch(error => {
     console.log("Ajustando conexión de Telegram en segundo plano...");
   });
+}
+
+function cargarContenidoInicial() {
+    const ruta = window.location.pathname.replace(/\//g, ""); 
+    const topicId = parseInt(ruta, 10);
+
+    if (!isNaN(topicId)) {
+        console.log(`📂 Abriendo Topic: ${topicId}`);
+        buscarVideo("", topicId);
+    } else {
+        buscarVideo(""); 
+    }
 }
 
 // 6. Lógica para buscar la lista de videos
@@ -438,4 +453,63 @@ if (btnLogout) {
             window.location.reload();
         }
     });
+}
+
+// ==========================================
+// NUEVO: SISTEMA DE LOGIN POR CÓDIGO QR
+// ==========================================
+async function iniciarLoginQR() {
+    try {
+        console.log("Iniciando solicitud de Código QR...");
+        
+        // signInUserWithQrCode gestiona automáticamente la generación y expiración (se renueva cada 30s)
+        await client.signInUserWithQrCode(
+            { apiId, apiHash },
+            {
+                qrCode: async (code) => {
+                    // Telegram devuelve un Buffer, lo convertimos a un formato seguro para la URL
+                    const base64Url = code.token
+                        .toString("base64")
+                        .replace(/\+/g, "-")
+                        .replace(/\//g, "_")
+                        .replace(/=+$/, "");
+                    
+                    const url = `tg://login?token=${base64Url}`;
+                    console.log("Nuevo QR generado por Telegram");
+
+                    // Vaciamos el contenedor por si había un QR viejo que caducó
+                    qrContainer.innerHTML = "";
+                    
+                    // Pintamos el QR en pantalla usando la librería de QRCode.js
+                    new QRCode(qrContainer, {
+                        text: url,
+                        width: 200,
+                        height: 200
+                    });
+                },
+                onError: async (err) => {
+                    console.error("Error en login QR:", err);
+                    alert("Ocurrió un error con el QR. Revisa la consola.");
+                    return true; // Detenemos el intento
+                }
+            }
+        );
+
+        // ¡Si la promesa llega hasta aquí, es porque el celular escaneó el QR con éxito!
+        console.log("¡Conectado exitosamente por Código QR!");
+        
+        // Guardamos la sesión en el navegador
+        localStorage.setItem("telegram_session", client.session.save());
+        
+        // Ocultamos la pantalla de login y pasamos al video
+        document.getElementById("login-section").classList.add("hidden");
+        document.getElementById("video-container").classList.remove("hidden");
+
+        // Lógica de ruteo que ya tenías
+        cargarContenidoInicial();
+
+    } catch (error) {
+        // Ignoramos si el usuario cerró o cambió de pestaña
+        console.log("Flujo QR detenido o cancelado.");
+    }
 }
