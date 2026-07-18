@@ -63,56 +63,76 @@ btnSendCode.addEventListener("click", async () => {
   btnSendCode.disabled = true;
   
   try {
-    // client.start() maneja automáticamente el flujo de login
-    await client.start({
-      phoneNumber: async () => phoneNumber,
-      
-      // Si Telegram pide el código, mostramos el modal del código
-      phoneCode: async () => {
-        stepPhone.classList.add("hidden");
-        stepCode.classList.remove("hidden");
-        return new Promise((resolve) => {
-          btnVerifyCode.onclick = () => resolve(codeInput.value);
-        });
-      },
-      
-      // Si el usuario tiene Verificación en 2 Pasos, pedimos la contraseña
-      password: async () => {
-        stepCode.classList.add("hidden");
-        stepPassword.classList.remove("hidden");
+    // Intentamos el flujo automático con client.start() pero SIN el callback de password
+    // porque en algunos entornos la librería lanza errores internos al manejar SRP.
+    try {
+      await client.start({
+        phoneNumber: async () => phoneNumber,
+        phoneCode: async () => {
+          stepPhone.classList.add("hidden");
+          stepCode.classList.remove("hidden");
+          return new Promise((resolve) => {
+            btnVerifyCode.onclick = () => resolve(codeInput.value);
+          });
+        },
+        onError: (err) => {
+          console.error("Error en login:", err);
+          alert("Ocurrió un error: " + err.message);
+        },
+      });
+    } catch (startErr) {
+      console.warn("client.start fallo — intentando flujo manual:", startErr.message || startErr);
+      // Si detectamos un error relacionado a 2FA o al manejo de bytes, intentamos el flujo manual
+      if (/password|2fa|2-step|Bytes or str expected/i.test(String(startErr.message || startErr))) {
+        try {
+          // Mostramos el formulario de password y recogemos la contraseña
+          stepPhone.classList.add("hidden");
+          stepCode.classList.add("hidden");
+          stepPassword.classList.remove("hidden");
 
-        // Devolvemos la contraseña como string limpia y evitamos múltiples clicks
-        return await new Promise((resolve, reject) => {
-          const handler = async (e) => {
-            if (e && typeof e.preventDefault === 'function') e.preventDefault();
-            btnVerifyPassword.disabled = true;
-            try {
-              const pwd = String(passwordInput.value || "").trim();
-              if (!pwd) {
+          const pwd = await new Promise((resolve) => {
+            const handler = (e) => {
+              e && e.preventDefault && e.preventDefault();
+              btnVerifyPassword.disabled = true;
+              const pass = String(passwordInput.value || "").trim();
+              if (!pass) {
                 btnVerifyPassword.disabled = false;
                 return alert("Ingresa la contraseña de 2 pasos");
               }
-              // Quitamos la pantalla de password para evitar doble envío visual
               stepPassword.classList.add("hidden");
-              resolve(pwd);
-            } catch (err) {
-              btnVerifyPassword.disabled = false;
-              reject(err);
-            } finally {
-              // Limpiamos el input por seguridad
               passwordInput.value = "";
               btnVerifyPassword.removeEventListener('click', handler);
-            }
-          };
+              resolve(pass);
+            };
+            btnVerifyPassword.addEventListener('click', handler);
+          });
 
-          btnVerifyPassword.addEventListener('click', handler);
-        });
-      },
-      onError: (err) => {
-        console.error("Error en login:", err);
-        alert("Ocurrió un error: " + err.message);
-      },
-    });
+          // Llamamos al helper que maneja SRP internamente
+          if (typeof client.signInWithPassword === 'function') {
+            await client.signInWithPassword(pwd);
+          } else if (typeof client.checkPassword === 'function') {
+            await client.checkPassword(pwd);
+          } else {
+            throw new Error('El cliente no expone signInWithPassword/checkPassword');
+          }
+
+          console.log('¡Conectado exitosamente (2FA)!');
+        } catch (pwErr) {
+          console.error('Error al completar 2FA:', pwErr);
+          alert('Fallo en 2FA: ' + (pwErr.message || pwErr));
+          btnSendCode.textContent = 'Enviar Código';
+          btnSendCode.disabled = false;
+          return;
+        }
+      } else {
+        // Si no es un error de 2FA, lo mostramos
+        console.error('Error en client.start no manejado:', startErr);
+        alert('Fallo de conexión: ' + (startErr.message || startErr));
+        btnSendCode.textContent = 'Enviar Código';
+        btnSendCode.disabled = false;
+        return;
+      }
+    }
 
     console.log("¡Conectado exitosamente!");
     
