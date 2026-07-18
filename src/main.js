@@ -4,6 +4,8 @@ import { Api } from "telegram";
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
 
+window.Buffer = Buffer;
+
 let videoSeleccionado = null;
 
 let listaDeVideos = []; // Aquí guardaremos todos los videos del Topic
