@@ -96,6 +96,11 @@
             height: 4px;
             border-radius: 2px;
             background: linear-gradient(to right, var(--primary-color) 100%, rgba(255, 255, 255, 0.3) 100%);
+            
+            /* 👇 Estas 3 líneas eliminan el diseño horrible 👇 */
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
         }
         .volume-container:hover .volume-slider { width: 70px; opacity: 1; }
 
