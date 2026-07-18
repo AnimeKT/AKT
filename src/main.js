@@ -107,29 +107,47 @@ btnSendCode.addEventListener("click", async () => {
             btnVerifyPassword.addEventListener('click', handler);
           });
 
-          // Llamamos al helper que maneja SRP internamente
-          if (typeof client.signInWithPassword === 'function') {
-            try {
+          // Intentamos completar 2FA pero añadimos logs detallados si falla
+          try {
+            if (typeof client.signInWithPassword === 'function') {
               await client.signInWithPassword({ password: pwd });
-            } catch (e) {
-              console.warn('signInWithPassword falló con objeto, reintentando con string:', e);
-              await client.signInWithPassword(pwd).catch(err => { throw err; });
-            }
-          } else if (typeof client.checkPassword === 'function') {
-            try {
+            } else if (typeof client.checkPassword === 'function') {
               await client.checkPassword({ password: pwd });
-            } catch (e) {
-              console.warn('checkPassword falló con objeto, reintentando con string:', e);
-              await client.checkPassword(pwd).catch(err => { throw err; });
+            } else {
+              throw new Error('El cliente no expone signInWithPassword/checkPassword');
             }
-          } else {
-            throw new Error('El cliente no expone signInWithPassword/checkPassword');
-          }
+            console.log('¡Conectado exitosamente (2FA)!');
+          } catch (innerErr) {
+            // Logs exhaustivos para depuración
+            console.error('SignIn 2FA falló, detalle del error:', innerErr);
+            console.error('Tipo de signInWithPassword:', typeof client.signInWithPassword);
+            console.error('Tipo de checkPassword:', typeof client.checkPassword);
+            try { console.error('Cliente keys:', Object.keys(client)); } catch(e){ console.error('No se pueden listar keys del cliente', e); }
 
-          console.log('¡Conectado exitosamente (2FA)!');
+            // Mostrar información en UI para que el usuario copie la traza
+            const msg = `Fallo en 2FA: ${innerErr && innerErr.message ? innerErr.message : innerErr}. Revisa la consola para más detalles.`;
+            alert(msg);
+
+            // Además, intentar reintentar con la cadena sola (por compatibilidad)
+            try {
+              if (typeof client.signInWithPassword === 'function') {
+                await client.signInWithPassword(pwd);
+                console.log('Reintento con string éxito');
+              } else if (typeof client.checkPassword === 'function') {
+                await client.checkPassword(pwd);
+                console.log('Reintento con string éxito');
+              }
+            } catch (retryErr) {
+              console.error('Reintento con string falló:', retryErr);
+              alert('Fallo al completar 2FA. Mira la consola (DevTools) y pásame la traza completa.');
+              btnSendCode.textContent = 'Enviar Código';
+              btnSendCode.disabled = false;
+              return;
+            }
+          }
         } catch (pwErr) {
-          console.error('Error al completar 2FA:', pwErr);
-          alert('Fallo en 2FA: ' + (pwErr.message || pwErr));
+          console.error('Error al completar 2FA (capturado):', pwErr);
+          alert('Fallo en 2FA: ' + (pwErr && pwErr.message ? pwErr.message : pwErr) + '\nRevisa la consola para más detalles.');
           btnSendCode.textContent = 'Enviar Código';
           btnSendCode.disabled = false;
           return;
