@@ -63,104 +63,32 @@ btnSendCode.addEventListener("click", async () => {
   btnSendCode.disabled = true;
   
   try {
-    // Intentamos el flujo automático con client.start() pero SIN el callback de password
-    // porque en algunos entornos la librería lanza errores internos al manejar SRP.
-    try {
-      await client.start({
-        phoneNumber: async () => phoneNumber,
-        phoneCode: async () => {
-          stepPhone.classList.add("hidden");
-          stepCode.classList.remove("hidden");
-          return new Promise((resolve) => {
-            btnVerifyCode.onclick = () => resolve(codeInput.value);
-          });
-        },
-        onError: (err) => {
-          console.error("Error en login:", err);
-          alert("Ocurrió un error: " + err.message);
-        },
-      });
-    } catch (startErr) {
-      console.warn("client.start fallo — intentando flujo manual:", startErr.message || startErr);
-      // Si detectamos un error relacionado a 2FA o al manejo de bytes, intentamos el flujo manual
-      if (/password|2fa|2-step|Bytes or str expected/i.test(String(startErr.message || startErr))) {
-        try {
-          // Mostramos el formulario de password y recogemos la contraseña
-          stepPhone.classList.add("hidden");
-          stepCode.classList.add("hidden");
-          stepPassword.classList.remove("hidden");
-
-          const pwd = await new Promise((resolve) => {
-            const handler = (e) => {
-              e && e.preventDefault && e.preventDefault();
-              btnVerifyPassword.disabled = true;
-              const pass = String(passwordInput.value || "").trim();
-              if (!pass) {
-                btnVerifyPassword.disabled = false;
-                return alert("Ingresa la contraseña de 2 pasos");
-              }
-              stepPassword.classList.add("hidden");
-              passwordInput.value = "";
-              btnVerifyPassword.removeEventListener('click', handler);
-              resolve(pass);
-            };
-            btnVerifyPassword.addEventListener('click', handler);
-          });
-
-          // Intentamos completar 2FA pero añadimos logs detallados si falla
-          try {
-            if (typeof client.signInWithPassword === 'function') {
-              await client.signInWithPassword({ password: pwd });
-            } else if (typeof client.checkPassword === 'function') {
-              await client.checkPassword({ password: pwd });
-            } else {
-              throw new Error('El cliente no expone signInWithPassword/checkPassword');
-            }
-            console.log('¡Conectado exitosamente (2FA)!');
-          } catch (innerErr) {
-            // Logs exhaustivos para depuración
-            console.error('SignIn 2FA falló, detalle del error:', innerErr);
-            console.error('Tipo de signInWithPassword:', typeof client.signInWithPassword);
-            console.error('Tipo de checkPassword:', typeof client.checkPassword);
-            try { console.error('Cliente keys:', Object.keys(client)); } catch(e){ console.error('No se pueden listar keys del cliente', e); }
-
-            // Mostrar información en UI para que el usuario copie la traza
-            const msg = `Fallo en 2FA: ${innerErr && innerErr.message ? innerErr.message : innerErr}. Revisa la consola para más detalles.`;
-            alert(msg);
-
-            // Además, intentar reintentar con la cadena sola (por compatibilidad)
-            try {
-              if (typeof client.signInWithPassword === 'function') {
-                await client.signInWithPassword(pwd);
-                console.log('Reintento con string éxito');
-              } else if (typeof client.checkPassword === 'function') {
-                await client.checkPassword(pwd);
-                console.log('Reintento con string éxito');
-              }
-            } catch (retryErr) {
-              console.error('Reintento con string falló:', retryErr);
-              alert('Fallo al completar 2FA. Mira la consola (DevTools) y pásame la traza completa.');
-              btnSendCode.textContent = 'Enviar Código';
-              btnSendCode.disabled = false;
-              return;
-            }
-          }
-        } catch (pwErr) {
-          console.error('Error al completar 2FA (capturado):', pwErr);
-          alert('Fallo en 2FA: ' + (pwErr && pwErr.message ? pwErr.message : pwErr) + '\nRevisa la consola para más detalles.');
-          btnSendCode.textContent = 'Enviar Código';
-          btnSendCode.disabled = false;
-          return;
-        }
-      } else {
-        // Si no es un error de 2FA, lo mostramos
-        console.error('Error en client.start no manejado:', startErr);
-        alert('Fallo de conexión: ' + (startErr.message || startErr));
-        btnSendCode.textContent = 'Enviar Código';
-        btnSendCode.disabled = false;
-        return;
-      }
-    }
+    // client.start() maneja automáticamente el flujo de login
+    await client.start({
+      phoneNumber: async () => phoneNumber,
+      
+      // Si Telegram pide el código, mostramos el modal del código
+      phoneCode: async () => {
+        stepPhone.classList.add("hidden");
+        stepCode.classList.remove("hidden");
+        return new Promise((resolve) => {
+          btnVerifyCode.onclick = () => resolve(codeInput.value);
+        });
+      },
+      
+      // Si el usuario tiene Verificación en 2 Pasos, pedimos la contraseña
+      password: async () => {
+        stepCode.classList.add("hidden");
+        stepPassword.classList.remove("hidden");
+        return new Promise((resolve) => {
+          btnVerifyPassword.onclick = () => resolve(passwordInput.value);
+        });
+      },
+      onError: (err) => {
+        console.error("Error en login:", err);
+        alert("Ocurrió un error: " + err.message);
+      },
+    });
 
     console.log("¡Conectado exitosamente!");
     
