@@ -86,7 +86,14 @@ btnSendCode.addEventListener("click", async () => {
       },
       onError: (err) => {
         console.error("Error en login:", err);
-        alert("Ocurrió un error: " + err.message);
+        
+        // Nueva lógica para detectar 2FA y rechazarlo
+        if (err.message.includes("SESSION_PASSWORD_NEEDED")) {
+            alert("Esta web no soporta cuentas con Verificación en 2 Pasos (2FA). Por favor, usa una cuenta sin 2FA.");
+            window.location.reload(); // Recargamos para limpiar todo
+        } else {
+            alert("Ocurrió un error: " + err.message);
+        }
       },
     });
 
