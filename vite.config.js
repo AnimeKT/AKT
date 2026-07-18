@@ -11,4 +11,12 @@ export default defineConfig({
       },
     }),
   ],
+  esbuild: {
+    // ¡LA MAGIA! Evita que Vite cambie "BigInteger" por "d"
+    keepNames: true 
+  },
+  build: {
+    // Nos aseguramos de que el empaquetador respete la regla
+    minify: 'esbuild' 
+  }
 });
