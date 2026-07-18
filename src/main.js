@@ -109,9 +109,19 @@ btnSendCode.addEventListener("click", async () => {
 
           // Llamamos al helper que maneja SRP internamente
           if (typeof client.signInWithPassword === 'function') {
-            await client.signInWithPassword(pwd);
+            try {
+              await client.signInWithPassword({ password: pwd });
+            } catch (e) {
+              console.warn('signInWithPassword falló con objeto, reintentando con string:', e);
+              await client.signInWithPassword(pwd).catch(err => { throw err; });
+            }
           } else if (typeof client.checkPassword === 'function') {
-            await client.checkPassword(pwd);
+            try {
+              await client.checkPassword({ password: pwd });
+            } catch (e) {
+              console.warn('checkPassword falló con objeto, reintentando con string:', e);
+              await client.checkPassword(pwd).catch(err => { throw err; });
+            }
           } else {
             throw new Error('El cliente no expone signInWithPassword/checkPassword');
           }
