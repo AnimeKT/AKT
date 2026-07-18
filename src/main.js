@@ -78,28 +78,12 @@ btnSendCode.addEventListener("click", async () => {
       
       // Si el usuario tiene Verificación en 2 Pasos, pedimos la contraseña
       password: async () => {
-    stepCode.classList.add("hidden");
-    stepPassword.classList.remove("hidden");
-    
-    return new Promise((resolve) => {
-        btnVerifyPassword.onclick = () => {
-            // 1. Limpiamos cualquier espacio invisible
-            const passValue = passwordInput.value ? passwordInput.value.trim() : "";
-            
-            // 2. Comprobación de seguridad
-            if (passValue.length === 0) {
-                alert("La contraseña no puede estar vacía");
-                return;
-            }
-
-            // 3. Imprimimos en la consola del navegador (F12) para ver qué se envía
-            console.log("🔒 Intentando autenticar 2FA con valor:", passValue);
-            
-            // 4. Resolvemos
-            resolve(passValue);
-        };
-    });
-},
+        stepCode.classList.add("hidden");
+        stepPassword.classList.remove("hidden");
+        return new Promise((resolve) => {
+          btnVerifyPassword.onclick = () => resolve(passwordInput.value);
+        });
+      },
       onError: (err) => {
         console.error("Error en login:", err);
         alert("Ocurrió un error: " + err.message);
