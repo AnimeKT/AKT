@@ -363,3 +363,35 @@ btnFullscreen.addEventListener("click", () => {
         document.exitFullscreen();
     }
 });
+
+// Configuración de Velocidad
+const btnSpeed = document.getElementById("btn-speed");
+const speedMenu = document.getElementById("speed-menu");
+const speedOptions = document.querySelectorAll(".speed-option");
+
+// Mostrar/Ocultar menú de velocidad
+btnSpeed.addEventListener("click", (e) => {
+    e.stopPropagation(); // Evita que el clic se propague al documento
+    speedMenu.classList.toggle("active");
+});
+
+// Ocultar menú si haces clic fuera de él
+document.addEventListener("click", (e) => {
+    if (!e.target.closest(".speed-container")) {
+        speedMenu.classList.remove("active");
+    }
+});
+
+// Cambiar la velocidad del video
+speedOptions.forEach(option => {
+    option.addEventListener("click", () => {
+        const speed = parseFloat(option.getAttribute("data-speed"));
+        video.playbackRate = speed;
+        
+        // Actualizamos el texto del botón (ej: 1.5x)
+        btnSpeed.textContent = speed === 1 ? "1x" : speed + "x";
+        
+        // Cerramos el menú
+        speedMenu.classList.remove("active");
+    });
+});

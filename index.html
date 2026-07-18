@@ -60,101 +60,65 @@
             left: 0;
             right: 0;
             background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
-            padding: 10px 15px 5px 15px; /* <-- Relleno más delgado */
+            padding: 8px 15px 4px 15px; /* Relleno más delgado */
             display: flex;
             flex-direction: column;
-            gap: 3px; /* <-- Separación vertical casi al mínimo */
+            gap: 4px; 
             opacity: 0;
             transition: opacity 0.3s ease;
             z-index: 10;
         }
 
-        /* Mostrar controles al pasar el mouse por encima del reproductor */
-        .video-wrapper:hover .custom-controls {
-            opacity: 1;
-        }
+        .video-wrapper:hover .custom-controls { opacity: 1; }
 
-        /* Barra de Progreso */
+        /* Barra de Progreso - Más fina */
         .progress-bar {
-            width: 100%;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-            cursor: pointer;
-            position: relative;
-            transition: height 0.1s ease;
+            width: 100%; height: 3px; background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px; cursor: pointer; position: relative; transition: height 0.1s ease;
         }
-        .progress-bar:hover {
-            height: 8px;
-        }
-        .progress-filled {
-            height: 100%;
-            width: 0%;
-            background-color: var(--primary-color);
-            border-radius: 3px;
-        }
+        .progress-bar:hover { height: 6px; }
+        .progress-filled { height: 100%; width: 0%; background-color: var(--primary-color); border-radius: 2px; }
 
         /* Fila de Botones Principales */
-        .controls-main {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 10px;
-        }
+        .controls-main { display: flex; align-items: center; gap: 12px; }
 
-        /* Botones de control genéricos */
+        /* Botones genéricos - Íconos más pequeños */
         .control-btn {
-            background: transparent;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.1s ease;
+            background: transparent; border: none; color: #fff; cursor: pointer;
+            padding: 2px; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.1s ease, color 0.2s ease;
         }
-        .control-btn:hover {
-            transform: scale(1.1);
-        }
-        .control-btn svg {
-            width: 26px;
-            height: 26px;
-            fill: currentColor;
-        }
+        .control-btn:hover { transform: scale(1.1); color: var(--primary-color); }
+        .control-btn svg { width: 20px; height: 20px; fill: currentColor; } /* Antes 26px */
+        
+        /* Botón de texto (1x) */
+        .text-btn { font-size: 13px; font-weight: bold; font-family: monospace; width: 30px; }
 
-        /* Texto de tiempo (0:00 / 0:00) */
-        .time-display {
-            font-size: 14px;
-            color: #fff;
-            font-weight: 500;
-            user-select: none;
-        }
+        /* Texto de tiempo */
+        .time-display { font-size: 12px; color: #e0e0e0; font-weight: 500; user-select: none; } /* Antes 14px */
+        .spacer { flex-grow: 1; }
 
-        /* Empujador para enviar el volumen y fullscreen a la derecha */
-        .spacer {
-            flex-grow: 1;
-        }
-
-        /* Control de Volumen Integrado */
-        .volume-container {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        /* Control de Volumen */
+        .volume-container { display: flex; align-items: center; gap: 5px; }
         .volume-slider {
-            width: 0px;
-            opacity: 0;
-            height: 4px;
-            accent-color: var(--primary-color);
-            transition: width 0.2s ease, opacity 0.2s ease;
-            cursor: pointer;
+            width: 0px; opacity: 0; height: 4px; accent-color: var(--primary-color);
+            transition: width 0.2s ease, opacity 0.2s ease; cursor: pointer;
         }
-        /* Desplegar la barra de volumen al pasar el mouse por el contenedor */
-        .volume-container:hover .volume-slider {
-            width: 70px;
-            opacity: 1;
+        .volume-container:hover .volume-slider { width: 60px; opacity: 1; }
+
+        /* Menú de Velocidad */
+        .speed-container { position: relative; display: flex; align-items: center; justify-content: center; }
+        .speed-menu {
+            position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%);
+            background: rgba(33, 33, 33, 0.95); border-radius: 6px; overflow: hidden;
+            display: none; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            min-width: 90px; z-index: 20;
         }
+        .speed-menu.active { display: flex; }
+        .speed-option {
+            padding: 6px 12px; cursor: pointer; color: white; font-size: 11px; text-align: center; transition: background 0.2s;
+        }
+        .speed-option:hover { background: rgba(255,255,255,0.2); color: var(--primary-color); }
     </style>
 </head>
 <body>
@@ -221,6 +185,18 @@
                                 <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
                             </button>
                             <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.1" value="1">
+                        </div>
+
+                        <!-- Botón Velocidad -->
+                        <div class="speed-container">
+                            <button class="control-btn text-btn" id="btn-speed">1x</button>
+                            <div class="speed-menu" id="speed-menu">
+                                <div class="speed-option" data-speed="0.5">0.5x</div>
+                                <div class="speed-option" data-speed="1">1x (Normal)</div>
+                                <div class="speed-option" data-speed="1.25">1.25x</div>
+                                <div class="speed-option" data-speed="1.5">1.5x</div>
+                                <div class="speed-option" data-speed="2">2x</div>
+                            </div>
                         </div>
 
                         <!-- Botón Pantalla Completa -->
