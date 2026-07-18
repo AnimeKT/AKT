@@ -1,10 +1,9 @@
-import { Buffer } from "buffer";
 import bigInt from "big-integer";
 import { Api } from "telegram";
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
 
-window.Buffer = Buffer;
+
 
 let videoSeleccionado = null;
 
