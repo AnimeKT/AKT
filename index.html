@@ -215,6 +215,15 @@
         </div>
     </div>
 
+    <script>
+        // Chequeo ultrarrápido: Si hay sesión en memoria, oculta el login AL INSTANTE
+        // sin esperar a que cargue la pesada librería de Telegram.
+        if (localStorage.getItem("telegram_session")) {
+            document.getElementById("login-section").classList.add("hidden");
+            document.getElementById("video-container").classList.remove("hidden");
+        }
+    </script>
+
     <script type="module" src="/src/main.js"></script>
 </body>
 </html>
