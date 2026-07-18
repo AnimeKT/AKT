@@ -1,13 +1,8 @@
 import { Buffer } from "buffer";
-window.Buffer = Buffer;
-window.global = window
-
 import bigInt from "big-integer";
 import { Api } from "telegram";
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
-
-
 
 let videoSeleccionado = null;
 
@@ -60,7 +55,6 @@ const loginSection = document.getElementById("login-section");
 const videoContainer = document.getElementById("video-container");
 
 // 4. Lógica cuando el usuario presiona "Enviar Código"
-// 4. Lógica cuando el usuario presiona "Enviar Código"
 btnSendCode.addEventListener("click", async () => {
   const phoneNumber = phoneInput.value;
   if (!phoneNumber) return alert("Ingresa un número válido");
@@ -77,16 +71,8 @@ btnSendCode.addEventListener("click", async () => {
       phoneCode: async () => {
         stepPhone.classList.add("hidden");
         stepCode.classList.remove("hidden");
-        // Limpiamos el input por si hubo intentos previos
-        codeInput.value = "";
-        
         return new Promise((resolve) => {
-          btnVerifyCode.onclick = () => {
-            if(!codeInput.value) return alert("Ingresa el código");
-            btnVerifyCode.textContent = "Verificando...";
-            btnVerifyCode.disabled = true;
-            resolve(codeInput.value);
-          };
+          btnVerifyCode.onclick = () => resolve(codeInput.value);
         });
       },
       
@@ -94,21 +80,13 @@ btnSendCode.addEventListener("click", async () => {
       password: async () => {
         stepCode.classList.add("hidden");
         stepPassword.classList.remove("hidden");
-        // Limpiamos el input por seguridad
-        passwordInput.value = "";
-        
         return new Promise((resolve) => {
-          btnVerifyPassword.onclick = () => {
-            if(!passwordInput.value) return alert("Ingresa tu contraseña de 2FA");
-            btnVerifyPassword.textContent = "Verificando...";
-            btnVerifyPassword.disabled = true;
-            resolve(passwordInput.value);
-          };
+          btnVerifyPassword.onclick = () => resolve(passwordInput.value);
         });
       },
       onError: (err) => {
-        console.error("Error en login capturado por GramJS:", err);
-        // No mostramos el alert aquí para evitar spam, el catch general lo manejará
+        console.error("Error en login:", err);
+        alert("Ocurrió un error: " + err.message);
       },
     });
 
@@ -117,29 +95,26 @@ btnSendCode.addEventListener("click", async () => {
     // Guardamos la sesión en el navegador para futuras visitas
     localStorage.setItem("telegram_session", client.session.save());
     
-    // Ocultamos el login y mostramos el área del video
-    loginSection.classList.add("hidden");
-    videoContainer.style.display = "block";
 
-    buscarVideo("");
+  // Ocultamos el login y mostramos el área del video
+    loginSection.classList.add("hidden");
+    videoContainer.classList.remove("hidden");
+
+    // LECTURA DINÁMICA DE LA URL (Para usuarios que se loguean por 1ra vez)
+    const ruta = window.location.pathname.replace(/\//g, ""); 
+    const topicId = parseInt(ruta, 10);
+
+    if (!isNaN(topicId)) {
+        console.log(`📂 Amigo logueado por 1ra vez. Abriendo Topic: ${topicId}`);
+        buscarVideo("", topicId);
+    } else {
+        buscarVideo(""); // Búsqueda general si no hay link
+    }
 
   } catch (error) {
     console.error("Fallo de conexión:", error);
-    alert("Ocurrió un error al iniciar sesión. Revisa tus datos.");
-    
-    // ¡LA CLAVE ESTÁ AQUÍ! Restauramos toda la UI si algo falla
     btnSendCode.textContent = "Enviar Código";
     btnSendCode.disabled = false;
-    
-    btnVerifyCode.textContent = "Verificar Código";
-    btnVerifyCode.disabled = false;
-    
-    btnVerifyPassword.textContent = "Verificar Contraseña";
-    btnVerifyPassword.disabled = false;
-    
-    stepPhone.classList.remove("hidden");
-    stepCode.classList.add("hidden");
-    stepPassword.classList.add("hidden");
   }
 });
 
