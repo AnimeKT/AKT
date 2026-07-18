@@ -121,18 +121,17 @@ if (savedSession) {
     const topicId = parseInt(ruta, 10);
 
     if (!isNaN(topicId)) {
-        console.log(`📂 Abriendo Topic dinámico ID: ${topicId}`);
-        buscarVideo("", topicId); // Pasamos el ID a nuestra función
+        console.log(`📂 Amigo logueado. Abriendo Topic directamente: ${topicId}`);
+        buscarVideo("", topicId);
     } else {
-        console.log("🏠 Cargando página principal");
-        buscarVideo(""); // Búsqueda general
+        buscarVideo(""); // Búsqueda general si no hay link
     }
 
   }).catch(error => {
     console.log("Ajustando conexión de Telegram en segundo plano...");
   });
 }
-// 6. Lógica para buscar videos en el canal o grupo
+
 // 6. Lógica para buscar la lista de videos
 async function buscarVideo(textoBusqueda, topicId = null) {
   try {
@@ -277,4 +276,80 @@ navigator.serviceWorker.addEventListener('message', async (event) => {
         port.postMessage({ error: error.message });
     }
   }
+});
+
+// 8. LÓGICA DEL REPRODUCTOR PERSONALIZADO
+const video = document.getElementById("reproductor");
+const btnPlay = document.getElementById("btn-play");
+const playIcon = document.getElementById("play-icon");
+const progressContainer = document.getElementById("progress-container");
+const progressBar = document.getElementById("progress-bar");
+const timeCurrent = document.getElementById("time-current");
+const timeDuration = document.getElementById("time-duration");
+const btnMute = document.getElementById("btn-mute");
+const volumeSlider = document.getElementById("volume-slider");
+const btnFullscreen = document.getElementById("btn-fullscreen");
+const videoWrapper = document.getElementById("video-wrapper");
+
+// Formatear segundos a minutos (Ej: 03:10)
+function formatTime(seconds) {
+    if (isNaN(seconds)) return "0:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+// Alternar Play y Pausa
+function togglePlay() {
+    if (video.paused) {
+        video.play();
+        // Cambiar a icono de pausa
+        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    } else {
+        video.pause();
+        // Cambiar a icono de play
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+    }
+}
+
+btnPlay.addEventListener("click", togglePlay);
+video.addEventListener("click", togglePlay); // Play/Pausa al tocar el video
+
+// Actualizar barra de progreso
+video.addEventListener("timeupdate", () => {
+    const percent = (video.currentTime / video.duration) * 100;
+    progressBar.style.width = `${percent}%`;
+    timeCurrent.textContent = formatTime(video.currentTime);
+});
+
+// Mostrar tiempo total cuando el video carga
+video.addEventListener("loadedmetadata", () => {
+    timeDuration.textContent = formatTime(video.duration);
+});
+
+// Adelantar/Atrasar al hacer clic en la barra
+progressContainer.addEventListener("click", (e) => {
+    const rect = progressContainer.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / rect.width;
+    video.currentTime = pos * video.duration;
+});
+
+// Control de Volumen
+volumeSlider.addEventListener("input", (e) => {
+    video.volume = e.target.value;
+    video.muted = e.target.value === "0";
+});
+
+btnMute.addEventListener("click", () => {
+    video.muted = !video.muted;
+    volumeSlider.value = video.muted ? 0 : video.volume;
+});
+
+// Pantalla Completa
+btnFullscreen.addEventListener("click", () => {
+    if (!document.fullscreenElement) {
+        videoWrapper.requestFullscreen().catch(err => console.error(err));
+    } else {
+        document.exitFullscreen();
+    }
 });
