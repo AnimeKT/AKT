@@ -121,6 +121,10 @@ btnSendCode.addEventListener("click", async () => {
 // 5. Autologin: Si ya teníamos sesión, nos conectamos en silencio
 if (savedSession) {
   console.log("Sesión encontrada. Conectando silenciosamente...");
+
+  loginSection.classList.add("hidden");
+  videoContainer.classList.remove("hidden");
+    
   client.connect().then(() => {
     loginSection.classList.add("hidden");
     videoContainer.classList.remove("hidden");
