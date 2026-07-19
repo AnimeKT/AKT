@@ -203,17 +203,53 @@ function cargarVideoEnReproductor() {
     videoSeleccionado = videoDoc; // Guardamos para el Service Worker
     const videoId = videoDoc.id.toString();
     
-    // 1. Extraer y limpiar el nombre del archivo
-    let nombreOriginal = "Video sin título";
-    const atributoNombre = videoDoc.attributes.find(attr => attr.className === 'DocumentAttributeFilename');
-    if (atributoNombre) nombreOriginal = atributoNombre.fileName;
+    // ==========================================
+    // 1. EXTRAER TÍTULO DESDE LA DESCRIPCIÓN 
+    // ==========================================
+    let nombreLimpio = "Anime sin título";
     
-    // MAGIA: Cortamos el texto justo donde encuentre un "[" o un "."
-    const nombreLimpio = nombreOriginal.split(/\[|\./)[0].trim(); 
+    // En la librería de Telegram que usas, la descripción viene en '.message'
+    const textoMensaje = mensajeActual.message || ""; 
+    
+    if (textoMensaje !== "") {
+        const lineas = textoMensaje.split('\n');
+        
+        let nombreAnime = "";
+        let numeroCapitulo = "";
+
+        // Buscar el número de episodio en la primera línea
+        if (lineas.length > 0) {
+            // Extrae cualquier número que encuentre en la primera línea
+            const matchNumero = lineas[0].match(/\d+/); 
+            if (matchNumero) {
+                numeroCapitulo = matchNumero[0];
+            }
+        }
+
+        // Buscar el nombre del anime en la segunda línea y limpiar emojis
+        if (lineas.length > 1) {
+            nombreAnime = lineas[1]
+                .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '') // Quita emojis
+                .replace(/[^\w\s\!\-\.áéíóúÁÉÍÓÚñÑ]/g, '') // Quita caracteres raros
+                .replace(/Anime/i, '') // Limpia la palabra "Anime" si dice "Anime:"
+                .trim();
+        }
+
+        // Unimos el texto para que quede como: "Nombre del Anime Cap - 1"
+        if (nombreAnime && numeroCapitulo) {
+            nombreLimpio = `${nombreAnime} Cap - ${numeroCapitulo}`;
+        } else if (nombreAnime) {
+            nombreLimpio = nombreAnime;
+        } else {
+            // Si el mensaje es de una sola línea, solo le quitamos los emojis
+            nombreLimpio = textoMensaje.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+        }
+    }
     
     // Actualizamos la interfaz
     document.getElementById("video-title").textContent = nombreLimpio;
     
+    // ==========================================
     // 2. Controlar si las flechas deben encenderse o apagarse
     document.getElementById("btn-prev").disabled = (indiceActual === 0);
     document.getElementById("btn-next").disabled = (indiceActual === listaDeVideos.length - 1);
