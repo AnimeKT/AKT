@@ -45,11 +45,12 @@
         .nav-btn:disabled { opacity: 0.15; cursor: default; }
 
         .video-wrapper {
-            /* Dimensiones exactas solicitadas */
-            width: 1279.02px;
-            height: 719.43px;
+            /* 1. Cambio CLAVE: Usar porcentajes y topes en lugar de medidas fijas */
+            width: 100%;
+            max-width: 1279px; 
+            height: auto; 
             
-            /* Resto de tus configuraciones */
+            /* 2. Resto de tus configuraciones originales */
             background: #000;
             border-radius: 12px;
             overflow: hidden;
@@ -58,7 +59,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            aspect-ratio: 16 / 9; /* Mantiene la proporción 720p */
+            aspect-ratio: 16 / 9; /* Mantiene la proporción 720p perfecta */
         }
 
         video { 
