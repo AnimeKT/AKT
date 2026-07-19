@@ -212,37 +212,50 @@ function cargarVideoEnReproductor() {
     const textoMensaje = mensajeActual.message || ""; 
     
     if (textoMensaje !== "") {
-        const lineas = textoMensaje.split('\n');
+        // 1.1 Convertir los números especiales (del bot) a números normales
+        const mapNumeros = {
+            '𝟬': '0', '𝟭': '1', '𝟮': '2', '𝟯': '3', '𝟰': '4',
+            '𝟱': '5', '𝟲': '6', '𝟳': '7', '𝟴': '8', '𝟵': '9'
+        };
+        // Reemplazamos cualquier número especial que encuentre en el texto
+        let textoNormalizado = textoMensaje.replace(/[𝟬-𝟵]/g, m => mapNumeros[m]);
+
+        const lineas = textoNormalizado.split('\n');
         
         let nombreAnime = "";
         let numeroCapitulo = "";
 
-        // Buscar el número de episodio en la primera línea
+        // 1.2 Buscar el número en la primera línea (ej: 📢 ¡𝗘𝗣𝗜𝗦𝗢𝗗𝗜𝗢 𝗡° 12!)
         if (lineas.length > 0) {
-            // Extrae cualquier número que encuentre en la primera línea
+            // Como ya normalizamos los números, ahora sí detectará el 1, 2, 3...
             const matchNumero = lineas[0].match(/\d+/); 
             if (matchNumero) {
                 numeroCapitulo = matchNumero[0];
             }
         }
 
-        // Buscar el nombre del anime en la segunda línea y limpiar emojis
+        // 1.3 Buscar el nombre del anime en la segunda línea (ej: 𝑨𝒏𝒊𝒎𝒆: Naruto)
         if (lineas.length > 1) {
-            nombreAnime = lineas[1]
-                .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '') // Quita emojis
-                .replace(/[^\w\s\!\-\.áéíóúÁÉÍÓÚñÑ]/g, '') // Quita caracteres raros
-                .replace(/Anime/i, '') // Limpia la palabra "Anime" si dice "Anime:"
+            let lineaAnime = lineas[1];
+            
+            // Si la línea contiene dos puntos (:), cortamos y nos quedamos con el texto de la derecha
+            if (lineaAnime.includes(':')) {
+                lineaAnime = lineaAnime.substring(lineaAnime.indexOf(':') + 1);
+            }
+            
+            // Limpiamos los emojis y eliminamos los espacios sobrantes a los lados
+            nombreAnime = lineaAnime
+                .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '') 
                 .trim();
         }
 
-        // Unimos el texto para que quede como: "Nombre del Anime Cap - 1"
+        // 1.4 Unir todo en el formato que querías
         if (nombreAnime && numeroCapitulo) {
             nombreLimpio = `${nombreAnime} Cap - ${numeroCapitulo}`;
         } else if (nombreAnime) {
             nombreLimpio = nombreAnime;
-        } else {
-            // Si el mensaje es de una sola línea, solo le quitamos los emojis
-            nombreLimpio = textoMensaje.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+        } else if (numeroCapitulo) {
+            nombreLimpio = `Capítulo ${numeroCapitulo}`;
         }
     }
     
