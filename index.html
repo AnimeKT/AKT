@@ -10,6 +10,69 @@
     <link rel="icon" type="image/x-icon" href="/favicon.png">
 
     <style>
+
+        /* Diseño del contenedor de capítulos debajo del video */
+        .episodes-container {
+            width: 100%;
+            max-width: 1279px; /* Se alinea perfectamente con el ancho máximo del video */
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px auto 0 auto; 
+            box-sizing: border-box;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .episodes-header {
+            margin-bottom: 20px;
+        }
+
+        .episodes-subtitle {
+            font-size: 13px;
+            color: var(--secondary-text-color);
+            display: block;
+        }
+
+        .episodes-title {
+            margin: 5px 0 0 0;
+            font-size: 18px;
+            color: var(--primary-text-color);
+            font-weight: bold;
+        }
+
+        /* Cuadrícula adaptativa para los botones numéricos */
+        .episodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 12px;
+        }
+
+        /* Botones estilo cuadradito oscuro */
+        .episode-btn {
+            background: #2a2a35; /* Color gris oscuro como en la foto */
+            color: #d1d1d1;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 12px 0;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .episode-btn:hover {
+            background: #383846;
+            color: white;
+        }
+
+        /* Botón Activo (El recuadro verde de la foto) */
+        .episode-btn.active {
+            border-color: #00d285; /* Borde verde/turquesa */
+            color: #00d285;
+            background: transparent;
+        }
+        
         /* Estilos exactos copiados de tu diseño original */
         :root {
             --background-color: #181818;
@@ -332,6 +395,16 @@
             
             <!-- Flecha Siguiente -->
             <button class="nav-btn" id="btn-next" disabled>&#10095;</button>
+        </div>
+        <!-- NUEVA SECCIÓN DE CAPÍTULOS -->
+        <div class="episodes-container" id="episodes-container" style="display: none;">
+            <div class="episodes-header">
+                <span class="episodes-subtitle">Estás viendo</span>
+                <h3 class="episodes-title" id="current-episode-text">Episodio 1</h3>
+            </div>
+            <div class="episodes-grid" id="episodes-grid">
+                <!-- Los botones se generarán automáticamente aquí con JavaScript -->
+            </div>
         </div>
 
         

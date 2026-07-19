@@ -162,6 +162,7 @@ function cargarContenidoInicial() {
 }
 
 // 6. Lógica para buscar la lista de videos
+// 6. Lógica para buscar la lista de videos
 async function buscarVideo(textoBusqueda, topicId = null) {
   try {
     const parametrosBusqueda = {
@@ -187,6 +188,9 @@ async function buscarVideo(textoBusqueda, topicId = null) {
         
         indiceActual = 0; // Empezamos por el primer video
         cargarVideoEnReproductor(); // Llamamos a la nueva función
+        
+        // <--- LÍNEA NUEVA AÑADIDA AQUÍ --->
+        renderizarGridCapitulos(); 
     } else {
         document.getElementById("video-title").textContent = "No se encontraron videos en este tema.";
     }
@@ -211,6 +215,7 @@ const EMOJI_A_NUMERO = {
     '5217907505362907029': '𝟵'
 };
 
+// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 // NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 function cargarVideoEnReproductor() {
     const mensajeActual = listaDeVideos[indiceActual];
@@ -290,6 +295,10 @@ function cargarVideoEnReproductor() {
     if (numeroEpisodio !== "") {
         tituloVideo = `${tituloVideo} - Episodio ${numeroEpisodio}`;
     }
+    
+    // <--- LÍNEAS NUEVAS AÑADIDAS AQUÍ --->
+    document.getElementById("current-episode-text").textContent = numeroEpisodio !== "" ? `Episodio ${numeroEpisodio}` : `Episodio ${indiceActual + 1}`;
+    actualizarCapituloActivo();
     
     // Actualizamos la interfaz
     document.getElementById("video-title").textContent = tituloVideo;
@@ -703,4 +712,44 @@ async function iniciarLoginQR() {
     } catch (error) {
         console.error("Flujo QR detenido o cancelado. Error:", error.message);
     }
+}
+
+// ==========================================
+// RENDERIZADO DE LA LISTA DE CAPÍTULOS
+// ==========================================
+function renderizarGridCapitulos() {
+    const grid = document.getElementById("episodes-grid");
+    const container = document.getElementById("episodes-container");
+    
+    if (!grid || listaDeVideos.length === 0) return;
+    
+    container.style.display = "block"; 
+    grid.innerHTML = ""; 
+    
+    listaDeVideos.forEach((video, index) => {
+        const btn = document.createElement("button");
+        btn.className = "episode-btn";
+        btn.textContent = index + 1; 
+        
+        // Asignar el clic para cambiar de video
+        btn.addEventListener("click", () => {
+            indiceActual = index;
+            cargarVideoEnReproductor();
+        });
+        
+        grid.appendChild(btn);
+    });
+    
+    actualizarCapituloActivo(); // Pintar el primero al cargar
+}
+
+function actualizarCapituloActivo() {
+    const botones = document.querySelectorAll(".episode-btn");
+    botones.forEach((btn, index) => {
+        if (index === indiceActual) {
+            btn.classList.add("active");
+        } else {
+            btn.classList.remove("active");
+        }
+    });
 }
