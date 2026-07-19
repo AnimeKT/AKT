@@ -39,15 +39,7 @@
         h1 { margin: 0; font-size: 22px; font-weight: 600; }
         h2 { margin: 10px 0 0 0; color: var(--secondary-text-color); font-size: 16px; font-weight: normal; background: var(--surface-color); padding: 15px; border-radius: 10px; }
 
-        .player-section { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            width: 100%; 
-            /* Aumenta esto a 1600px, 1800px o más, según prefieras */
-            max-width: 1600px; 
-            gap: 20px; 
-        }
+        .player-section { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 1400px; gap: 20px; }
         .nav-btn { background: transparent; color: white; border: none; font-size: 40px; cursor: pointer; transition: 0.2s; padding: 10px; }
         .nav-btn:hover:not(:disabled) { color: var(--primary-color); transform: scale(1.2); }
         .nav-btn:disabled { opacity: 0.15; cursor: default; }
@@ -61,10 +53,13 @@
             position: relative; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: flex;
-            /* QUITAMOS EL max-height PARA QUE NO TENGA LÍMITE */
-            aspect-ratio: 16 / 9;
-            min-height: 360px; 
             align-items: center;
+            justify-content: center;
+            
+            /* ESTO ES LO QUE SOLUCIONA EL SALTO */
+            aspect-ratio: 16 / 9;
+            min-height: 500px; /* Ajusta este valor si lo quieres más o menos grande */
+            contain: content; /* Le dice al navegador que no redimensione el contenedor por el contenido */
         }
         video { width: 100%; display: block; outline: none; cursor: pointer; }
 
