@@ -61,7 +61,13 @@
             min-height: 500px; /* Ajusta este valor si lo quieres más o menos grande */
             contain: content; /* Le dice al navegador que no redimensione el contenedor por el contenido */
         }
-        video { width: 100%; display: block; outline: none; cursor: pointer; }
+        video { 
+            width: 100%; 
+            height: 100%; 
+            display: block; /* Elimina espacios extra */
+            object-fit: contain; /* Mantiene la proporción 16:9 sin estirarse */
+            background: #000;
+        }
 
         /* Controles flotantes */
         .custom-controls {
