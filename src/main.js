@@ -799,6 +799,17 @@ function renderizarGridCapitulos() {
     const grid = document.getElementById("episodes-grid");
     const container = document.getElementById("episodes-container");
     
+    // 1. Detectamos si estamos en una ruta con número (ej: /1416)
+    const rutaActual = window.location.pathname.replace(/\//g, "");
+    const esSubPagina = !isNaN(parseInt(rutaActual, 10)) && rutaActual !== "";
+
+    // 2. Si es un enlace numerado, ocultamos el contenedor y detenemos la función
+    if (esSubPagina) {
+        if (container) container.style.display = "none";
+        return;
+    }
+
+    // 3. Validaciones originales
     if (!grid || listaDeVideos.length === 0) return;
     
     container.style.display = "block"; 
