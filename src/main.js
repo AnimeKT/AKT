@@ -303,7 +303,22 @@ function cargarVideoEnReproductor() {
     }
     
     // <--- LÍNEAS NUEVAS AÑADIDAS AQUÍ --->
-    document.getElementById("current-episode-text").textContent = numeroEpisodio !== "" ? `Episodio ${numeroEpisodio}` : `Episodio ${indiceActual + 1}`;
+    const textoDelEpisodio = numeroEpisodio !== "" ? `Episodio ${numeroEpisodio}` : `Episodio ${indiceActual + 1}`;
+    document.getElementById("current-episode-text").textContent = textoDelEpisodio;
+
+    // MAGIA PARA CAMBIAR EL TÍTULO "Episodios recientes" SEGÚN EL LINK
+    const tituloSeccion = document.querySelector(".episodes-title");
+    const rutaActual = window.location.pathname.replace(/\//g, ""); 
+    const esSubPagina = !isNaN(parseInt(rutaActual, 10)) && rutaActual !== "";
+
+    if (esSubPagina) {
+        // Si el link tiene un número (ej: /2233), muestra qué episodio estás viendo
+        tituloSeccion.textContent = `Estás viendo: ${textoDelEpisodio}`;
+    } else {
+        // Si es la página principal (/)
+        tituloSeccion.textContent = "Episodios recientes";
+    }
+
     actualizarCapituloActivo();
     
     // Actualizamos la interfaz
@@ -318,6 +333,7 @@ function cargarVideoEnReproductor() {
     reproductor.src = `/stream/${videoId}`;
     reproductor.preload = "auto";
     reproductor.play().catch(() => console.log("Play automático bloqueado por el navegador"));
+    
 }
 
 // 4. Lógica de las flechas (Añade esto justo debajo de la función cargarVideoEnReproductor)
