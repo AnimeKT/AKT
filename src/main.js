@@ -195,7 +195,7 @@ async function buscarVideo(textoBusqueda, topicId = null) {
   }
 }
 
-// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
+// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y leer la descripción
 function cargarVideoEnReproductor() {
     const mensajeActual = listaDeVideos[indiceActual];
     const videoDoc = mensajeActual.media.document;
@@ -208,7 +208,6 @@ function cargarVideoEnReproductor() {
     // ==========================================
     let nombreLimpio = "Anime sin título";
     
-    // En la librería de Telegram que usas, la descripción viene en '.message'
     const textoMensaje = mensajeActual.message || ""; 
     
     if (textoMensaje !== "") {
@@ -217,39 +216,38 @@ function cargarVideoEnReproductor() {
             '𝟬': '0', '𝟭': '1', '𝟮': '2', '𝟯': '3', '𝟰': '4',
             '𝟱': '5', '𝟲': '6', '𝟳': '7', '𝟴': '8', '𝟵': '9'
         };
-        // Reemplazamos cualquier número especial que encuentre en el texto
         let textoNormalizado = textoMensaje.replace(/[𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵]/gu, m => mapNumeros[m]);
 
-        const lineas = textoNormalizado.split('\n');
+        // 1.2 Separar por líneas y ELIMINAR las líneas que estén vacías
+        const lineas = textoNormalizado.split('\n').filter(linea => linea.trim() !== "");
         
         let nombreAnime = "";
         let numeroCapitulo = "";
 
-        // 1.2 Buscar el número en la primera línea (ej: 📢 ¡𝗘𝗣𝗜𝗦𝗢𝗗𝗜𝗢 𝗡° 12!)
-        if (lineas.length > 0) {
-            // Como ya normalizamos los números, ahora sí detectará el 1, 2, 3...
-            const matchNumero = lineas[0].match(/\d+/); 
-            if (matchNumero) {
-                numeroCapitulo = matchNumero[0];
+        // 1.3 Buscar dinámicamente el contenido sin importar la línea
+        for (const linea of lineas) {
+            // Buscar la palabra Episodio o N°
+            if (linea.includes('𝗘𝗣𝗜𝗦𝗢𝗗𝗜𝗢') || linea.includes('N°') || linea.includes('EPISODIO')) {
+                const matchNumero = linea.match(/\d+/); 
+                if (matchNumero) {
+                    numeroCapitulo = matchNumero[0];
+                }
+            }
+
+            // Buscar la etiqueta del Anime
+            if (linea.includes(':') && (linea.includes('𝑨𝒏𝒊𝒎𝒆') || linea.includes('Anime'))) {
+                let lineaAnime = linea.substring(linea.indexOf(':') + 1);
+                // Quitamos emojis y espacios
+                nombreAnime = lineaAnime.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
             }
         }
-
-        // 1.3 Buscar el nombre del anime en la segunda línea (ej: 𝑨𝒏𝒊𝒎𝒆: Naruto)
-        if (lineas.length > 1) {
-            let lineaAnime = lineas[1];
-            
-            // Si la línea contiene dos puntos (:), cortamos y nos quedamos con el texto de la derecha
-            if (lineaAnime.includes(':')) {
-                lineaAnime = lineaAnime.substring(lineaAnime.indexOf(':') + 1);
-            }
-            
-            // Limpiamos los emojis y eliminamos los espacios sobrantes a los lados
-            nombreAnime = lineaAnime
-                .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '') 
-                .trim();
+        
+        // 1.4 Limpiar un punto al final si lo tiene (como en tu imagen: "T2 .")
+        if (nombreAnime.endsWith('.')) {
+            nombreAnime = nombreAnime.slice(0, -1).trim();
         }
 
-        // 1.4 Unir todo en el formato que querías
+        // 1.5 Unir todo en el formato exacto que pediste
         if (nombreAnime && numeroCapitulo) {
             nombreLimpio = `${nombreAnime} Cap - ${numeroCapitulo}`;
         } else if (nombreAnime) {
