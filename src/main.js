@@ -175,7 +175,10 @@ async function buscarVideo(textoBusqueda, topicId = null) {
         peer: "@AnimeKTe", 
         q: textoBusqueda, 
         filter: new Api.InputMessagesFilterVideo(), 
-        limit: 100, // Aumentamos el límite para capturar toda la temporada
+        // MAGIA AQUÍ: 
+        // Si hay topicId (ej. /2233), pedimos un límite altísimo para que salgan infinitos.
+        // Si no hay topicId (estamos en /), pedimos solo 20.
+        limit: topicId !== null ? 10000 : 20, 
     };
 
     if (topicId) parametrosBusqueda.topMsgId = topicId;
@@ -184,6 +187,12 @@ async function buscarVideo(textoBusqueda, topicId = null) {
 
     // Filtramos para asegurarnos de que solo haya mensajes con documentos (videos)
     listaDeVideos = result.messages.filter(msg => msg.media && msg.media.document);
+
+    // CORTAFUEGOS EXTRA: Nos aseguramos de cortar la lista estrictamente a 20 
+    // en la página principal por si Telegram envía datos adicionales.
+    if (topicId === null) {
+        listaDeVideos = listaDeVideos.slice(0, 20);
+    }
 
     if (listaDeVideos.length > 0) {
         console.log(`¡Encontramos ${listaDeVideos.length} videos en esta lista!`);
