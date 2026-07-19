@@ -312,14 +312,17 @@ function cargarVideoEnReproductor() {
     const esSubPagina = !isNaN(parseInt(rutaActual, 10)) && rutaActual !== "";
 
     if (esSubPagina) {
-        // Usamos innerHTML para meter saltos de línea y estilos diferentes
+        // Formato de dos líneas para cuando miras un video específico
         tituloSeccion.innerHTML = `
             <span style="font-size: 13px; color: var(--secondary-text-color); font-weight: normal; display: block; margin-bottom: 2px;">Estás viendo</span>
             <span style="font-size: 15px;">${textoDelEpisodio}</span>
         `;
     } else {
-        // Si es la página principal (/)
-        tituloSeccion.innerHTML = "Episodios recientes";
+        // Formato de dos líneas para la página principal (/)
+        tituloSeccion.innerHTML = `
+            <span style="font-size: 13px; color: var(--secondary-text-color); font-weight: normal; display: block; margin-bottom: 2px;">Episodios</span>
+            <span style="font-size: 15px;">Recientes</span>
+        `;
     }
 
     actualizarCapituloActivo();
