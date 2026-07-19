@@ -223,14 +223,38 @@ function cargarVideoEnReproductor() {
     let numeroEpisodio = "";
     
     // 1. Extraer y limpiar el texto base
-    if (mensajeActual.message && mensajeActual.message.trim() !== "") {
-        let textoBruto = mensajeActual.message.trim();
-        
+    if (mensajeActual.message && mensajeActual.message !== "") {
+        // Usamos el texto original (sin trim) para mantener offsets correctos
+        let textoBruto = mensajeActual.message;
+
+        // Si hay entidades, removemos las entidades de emoji numérico
+        if (mensajeActual.entities && mensajeActual.entities.length > 0) {
+            const entidadesParaRemover = mensajeActual.entities.slice().sort((a, b) => a.offset - b.offset);
+            let resultado = "";
+            let ultimo = 0;
+
+            for (const entidad of entidadesParaRemover) {
+                if (entidad.className === 'MessageEntityCustomEmoji') {
+                    const emojiId = entidad.documentId && entidad.documentId.toString && entidad.documentId.toString();
+                    if (emojiId && EMOJI_A_NUMERO[emojiId]) {
+                        // Añadimos el texto antes de esta entidad y saltamos la entidad
+                        resultado += textoBruto.substring(ultimo, entidad.offset);
+                        ultimo = entidad.offset + entidad.length;
+                        continue;
+                    }
+                }
+            }
+
+            // Añadimos lo que queda después de la última entidad
+            resultado += textoBruto.substring(ultimo);
+            textoBruto = resultado;
+        }
+
         // Limpiamos los adornos (incluyendo el punto para que no ensucie el nombre del anime)
         tituloVideo = textoBruto.replace(/💠/g, "")
                                 .replace(/𝙈𝙀𝙉𝙐/g, "")
                                 .replace(/\./g, "")
-                                .replace(/\s+/g, " ") 
+                                .replace(/\s+/g, " ")
                                 .trim();
     }
 
