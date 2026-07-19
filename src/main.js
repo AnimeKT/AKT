@@ -311,8 +311,9 @@ navigator.serviceWorker.addEventListener('message', async (event) => {
 const video = document.getElementById("reproductor");
 const btnPlay = document.getElementById("btn-play");
 const playIcon = document.getElementById("play-icon");
-const progressContainer = document.getElementById("progress-container");
-const progressBar = document.getElementById("progress-bar");
+const progressSlider = document.getElementById("progress-slider");
+const progressWrapper = document.getElementById("progress-wrapper");
+const timeTooltip = document.getElementById("time-tooltip");
 const timeCurrent = document.getElementById("time-current");
 const timeDuration = document.getElementById("time-duration");
 const btnMute = document.getElementById("btn-mute");
@@ -344,26 +345,65 @@ function togglePlay() {
 btnPlay.addEventListener("click", togglePlay);
 video.addEventListener("click", togglePlay); // Play/Pausa al tocar el video
 
-// Actualizar barra de progreso
+// Variable para saber si estamos arrastrando la bolita (para evitar que el video salte bruscamente)
+let isDraggingProgress = false;
+
+// 1. Actualizar barra mientras el video se reproduce
 video.addEventListener("timeupdate", () => {
-    const percent = (video.currentTime / video.duration) * 100;
-    progressBar.style.width = `${percent}%`;
+    if (!isDraggingProgress && video.duration) {
+        const percent = (video.currentTime / video.duration) * 100;
+        progressSlider.value = percent;
+        // Pintar la barra de lila hasta donde va el progreso
+        progressSlider.style.background = `linear-gradient(to right, var(--primary-color) ${percent}%, rgba(255, 255, 255, 0.3) ${percent}%)`;
+    }
     timeCurrent.textContent = formatTime(video.currentTime);
 });
 
-// Mostrar tiempo total cuando el video carga
+// ¡MANTENEMOS ESTO! Mostrar tiempo total cuando el video carga
 video.addEventListener("loadedmetadata", () => {
     timeDuration.textContent = formatTime(video.duration);
 });
 
-// Adelantar/Atrasar al hacer clic en la barra
-progressContainer.addEventListener("click", (e) => {
-    const rect = progressContainer.getBoundingClientRect();
-    const pos = (e.clientX - rect.left) / rect.width;
-    video.currentTime = pos * video.duration;
+// 2. Control al arrastrar la bolita (para que la barra se pinte mientras mueves, pero el video no salte hasta soltar)
+progressSlider.addEventListener("input", (e) => {
+    isDraggingProgress = true;
+    const percent = e.target.value;
+    progressSlider.style.background = `linear-gradient(to right, var(--primary-color) ${percent}%, rgba(255, 255, 255, 0.3) ${percent}%)`;
+    
+    // Opcional: Actualizar el tiempo actual en pantalla mientras arrastras
+    if (video.duration) {
+        timeCurrent.textContent = formatTime((percent / 100) * video.duration);
+    }
 });
 
-// Control de Volumen
+// 3. Cuando sueltas la bolita (o haces clic), saltar a ese punto del video
+progressSlider.addEventListener("change", (e) => {
+    if (video.duration) {
+        const percent = e.target.value;
+        video.currentTime = (percent / 100) * video.duration;
+    }
+    isDraggingProgress = false;
+});
+
+// 4. Lógica para el Tooltip flotante
+progressWrapper.addEventListener("mousemove", (e) => {
+    if (!video.duration) return;
+
+    // Calcular posición del ratón sobre la barra
+    const rect = progressWrapper.getBoundingClientRect();
+    let pos = (e.clientX - rect.left) / rect.width;
+    
+    // Limitar posición entre 0 y 1
+    pos = Math.max(0, Math.min(1, pos)); 
+
+    // Calcular qué tiempo representa esa posición
+    const hoverTime = pos * video.duration;
+    timeTooltip.textContent = formatTime(hoverTime);
+
+    // Mover el tooltip para que siga al ratón
+    timeTooltip.style.left = `calc(${pos * 100}% - 10px)`; 
+});
+
 // Control de Volumen
 volumeSlider.addEventListener("input", (e) => {
     const valor = e.target.value;
