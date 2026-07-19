@@ -212,45 +212,59 @@ const EMOJI_A_NUMERO = {
 };
 
 // NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
+// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 function cargarVideoEnReproductor() {
     const mensajeActual = listaDeVideos[indiceActual];
     const videoDoc = mensajeActual.media.document;
     
-    videoSeleccionado = videoDoc; // Guardamos para el Service Worker
+    videoSeleccionado = videoDoc; 
     const videoId = videoDoc.id.toString();
     
     let tituloVideo = "Video sin descripción";
     let numeroEpisodio = "";
     
-    // 1. Extraer y limpiar el texto base de la descripción
+    // 1. Extraer y limpiar el texto base
     if (mensajeActual.message && mensajeActual.message.trim() !== "") {
         let textoBruto = mensajeActual.message.trim();
         
-        // LIMPIEZA: Quitamos rombos, la palabra MENU, puntos finales y espacios extra
+        // Limpiamos los adornos (incluyendo el punto para que no ensucie el nombre del anime)
         tituloVideo = textoBruto.replace(/💠/g, "")
                                 .replace(/𝙈𝙀𝙉𝙐/g, "")
                                 .replace(/\./g, "")
-                                .replace(/\s+/g, " ") // Convierte múltiples espacios en uno solo
+                                .replace(/\s+/g, " ") 
                                 .trim();
     }
 
-    // 2. Extraer y traducir los Custom Emojis (Emojis Premium)
+    // 2. Extraer los Custom Emojis y detectar puntos normales intermedios
     if (mensajeActual.entities && mensajeActual.entities.length > 0) {
-        for (const entidad of mensajeActual.entities) {
-            // En GramJS, los emojis animados tienen esta clase
+        // Ordenamos las entidades de izquierda a derecha
+        const entidades = mensajeActual.entities.sort((a, b) => a.offset - b.offset);
+        let posicionUltimoEmoji = 0;
+
+        for (const entidad of entidades) {
             if (entidad.className === 'MessageEntityCustomEmoji') {
-                // El ID del emoji viene en documentId (lo pasamos a string para el diccionario)
                 const emojiId = entidad.documentId.toString();
+                
                 if (EMOJI_A_NUMERO[emojiId]) {
+                    // MAGIA AQUÍ: Leemos el texto normal que quedó entre el número anterior y este
+                    const textoIntermedio = mensajeActual.message.substring(posicionUltimoEmoji, entidad.offset);
+                    
+                    // Si ya habíamos guardado un número (ej: el 1) y vemos un punto en medio, lo añadimos
+                    if (numeroEpisodio !== "" && textoIntermedio.includes('.')) {
+                        numeroEpisodio += ".";
+                    }
+                    
+                    // Guardamos el número que acabamos de traducir
                     numeroEpisodio += EMOJI_A_NUMERO[emojiId];
                 }
             }
+            // Actualizamos la posición para el siguiente ciclo
+            posicionUltimoEmoji = entidad.offset + entidad.length;
         }
     }
 
-    // 3. Construir el título final (AQUÍ CAMBIAMOS EL ORDEN)
+    // 3. Construir el título final
     if (numeroEpisodio !== "") {
-        // Ahora ponemos primero el título limpio, luego el guion, y al final el episodio
         tituloVideo = `${tituloVideo} - Episodio ${numeroEpisodio}`;
     }
     
