@@ -7,6 +7,42 @@ let videoSeleccionado = null;
 
 let listaDeVideos = []; // Aquí guardaremos todos los videos del Topic
 let indiceActual = 0;
+let portadasDesdeCanal = {};
+
+// Función que lee el canal de notificaciones y extrae las portadas
+async function obtenerPortadasDelCanal() {
+    console.log("Buscando portadas en el canal de notificaciones...");
+    try {
+        const result = await client.invoke(new Api.messages.Search({
+            peer: "@AnimeKaergsty", // <- El @ de tu canal de notificaciones
+            q: "",
+            filter: new Api.InputMessagesFilterEmpty(),
+            limit: 50, // Revisa los últimos 50 mensajes (puedes subirlo)
+        }));
+
+        result.messages.forEach(mensaje => {
+            // Verificamos que el mensaje tenga texto y multimedia (foto o gif)
+            if (mensaje.message && mensaje.media) {
+                // Buscamos la línea que dice "Anime: " o "𝑨𝒏𝒊𝒎𝒆: "
+                const match = mensaje.message.match(/(?:Anime|𝑨𝒏𝒊𝒎𝒆):\s*(.+)/i);
+                
+                if (match && match[1]) {
+                    // Limpiamos el nombre para que sea fácil de comparar
+                    const nombreAnime = match[1].trim().toLowerCase();
+                    
+                    // Si no hemos guardado este anime aún, lo guardamos
+                    if (!portadasDesdeCanal[nombreAnime]) {
+                        portadasDesdeCanal[nombreAnime] = mensaje.media;
+                    }
+                }
+            }
+        });
+        console.log("¡Portadas extraídas con éxito!", Object.keys(portadasDesdeCanal).length, "animes encontrados.");
+    } catch (error) {
+        console.error("Error obteniendo portadas del canal:", error);
+    }
+}
+
 
 // REGISTRO DEL SERVICE WORKER
 if ('serviceWorker' in navigator) {
@@ -124,6 +160,7 @@ btnSendCode.addEventListener("click", async () => {
     videoContainer.classList.remove("hidden");
 
     // LECTURA DINÁMICA DE LA URL (Para usuarios que se loguean por 1ra vez)
+    await obtenerPortadasDelCanal();
     cargarContenidoInicial();
 
   } catch (error) {
@@ -140,8 +177,9 @@ if (savedSession) {
   loginSection.classList.add("hidden");
   videoContainer.classList.remove("hidden");
 
-  client.connect().then(() => {
+  client.connect().then(async () => {
 
+    await obtenerPortadasDelCanal();
     cargarContenidoInicial();
 
   }).catch(error => {
@@ -768,103 +806,85 @@ function renderizarGridCapitulos() {
     
     // Cambiamos "video" por "mensajeActual" para analizar su contenido
     listaDeVideos.forEach((mensajeActual, index) => {
-        const btn = document.createElement("button");
-        btn.className = "episode-btn";
-        
-        // --- INICIO DE LA MAGIA PARA LEER EL "1.6" EN LOS BOTONES ---
-        let numeroEpisodio = "";
-        if (mensajeActual.entities && mensajeActual.entities.length > 0) {
-            const entidades = mensajeActual.entities.slice().sort((a, b) => a.offset - b.offset);
-            let posicionUltimoEmoji = 0;
+    const btn = document.createElement("button");
+    btn.className = "episode-card"; 
 
-            for (const entidad of entidades) {
-                if (entidad.className === 'MessageEntityCustomEmoji') {
-                    const emojiId = entidad.documentId.toString();
-                    if (EMOJI_A_NUMERO[emojiId]) {
-                        const textoIntermedio = mensajeActual.message.substring(posicionUltimoEmoji, entidad.offset);
-                        // Si hay un punto entre los emojis numéricos, lo añade
-                        if (numeroEpisodio !== "" && textoIntermedio.includes('.')) {
-                            numeroEpisodio += ".";
-                        }
-                        numeroEpisodio += EMOJI_A_NUMERO[emojiId];
-                    }
-                }
-                posicionUltimoEmoji = entidad.offset + entidad.length;
-            }
+    // ... [Tu código intacto de limpieza y extracción de "textoNumero" y "nombreAnime"] ...
+
+    // 1. Preparamos un ID único para inyectar el archivo visual
+    const mediaId = `media-${mensajeActual.id}`;
+    
+    // 2. Comparamos el nombre del anime del video actual con nuestro diccionario de portadas
+    const nombreVideoLimpio = nombreAnime.trim().toLowerCase();
+    let mediaAsignada = null;
+
+    for (let nombreEnCanal in portadasDesdeCanal) {
+        // Si el nombre del canal está incluido en el nombre del video (o viceversa)
+        if (nombreVideoLimpio.includes(nombreEnCanal) || nombreEnCanal.includes(nombreVideoLimpio)) {
+            mediaAsignada = portadasDesdeCanal[nombreEnCanal];
+            break;
         }
+    }
 
-        // Variable que guarda el número final del botón
-        const rutaLimpiaGrid = window.location.pathname.replace(/\//g, ""); 
-        const esSubPaginaGrid = !isNaN(parseInt(rutaLimpiaGrid, 10)) && rutaLimpiaGrid !== "";
-        const numeroFallbackGrid = esSubPaginaGrid ? (index + 1) : (listaDeVideos.length - index);
-
-        // Variable que guarda el número final del botón
-        const textoNumero = numeroEpisodio !== "" ? numeroEpisodio : numeroFallbackGrid;
-        // --- FIN DE LA MAGIA ---
-
-        // --- INICIO DE LA LIMPIEZA EXTREMA Y CREACIÓN DEL GLOBITO ---
-        let nombreAnime = "Anime";
-        if (mensajeActual.message) {
-            let textoBruto = mensajeActual.message;
+    // 3. Estructura HTML de la tarjeta (Netflix style)
+    btn.innerHTML = `
+        <div class="episode-card-image-wrapper" id="wrapper-${mediaId}">
+            <!-- Texto de carga temporal -->
+            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #888;">Cargando...</div>
             
-            // 1. Extraer y borrar los emojis Premium/Custom de Telegram del texto
-            if (mensajeActual.entities && mensajeActual.entities.length > 0) {
-                const emojisPremium = mensajeActual.entities
-                    .filter(e => e.className === 'MessageEntityCustomEmoji')
-                    .sort((a, b) => a.offset - b.offset);
+            <span class="episode-badge">Episodio ${textoNumero}</span>
+            <span class="time-badge">Reciente</span> 
+        </div>
+        <div class="episode-card-title" title="${nombreAnime}">
+            ${nombreAnime}
+        </div>
+    `;
+
+    // 4. Descargar e inyectar el GIF/Imagen si encontramos coincidencia
+    if (mediaAsignada) {
+        // Determinamos si es un GIF (Documento MP4) o una Foto estática
+        const esGif = mediaAsignada.className === 'MessageMediaDocument';
+
+        client.downloadMedia(mediaAsignada).then(buffer => {
+            if (buffer) {
+                const wrapper = document.getElementById(`wrapper-${mediaId}`);
+                if (!wrapper) return;
+
+                // Borramos el texto de "Cargando..."
+                wrapper.innerHTML = `
+                    <span class="episode-badge">Episodio ${textoNumero}</span>
+                    <span class="time-badge">Reciente</span>
+                `;
+
+                if (esGif) {
+                    // Creamos el blob como video MP4 (los GIFs en Telegram son MP4)
+                    const blob = new Blob([buffer], { type: 'video/mp4' });
+                    const url = URL.createObjectURL(blob);
                     
-                let temp = "";
-                let ultimo = 0;
-                for (const e of emojisPremium) {
-                    temp += textoBruto.substring(ultimo, e.offset);
-                    ultimo = e.offset + e.length;
+                    wrapper.innerHTML += `
+                        <video src="${url}" class="episode-card-img" autoplay loop muted playsinline style="object-fit: cover; pointer-events: none;"></video>
+                    `;
+                } else {
+                    // Creamos el blob como imagen JPG
+                    const blob = new Blob([buffer], { type: 'image/jpeg' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    wrapper.innerHTML += `
+                        <img src="${url}" class="episode-card-img" style="object-fit: cover;">
+                    `;
                 }
-                temp += textoBruto.substring(ultimo);
-                textoBruto = temp;
             }
+        }).catch(err => console.log("Error descargando miniatura para:", nombreAnime));
+    }
 
-            // 2. Limpieza final: Quita diamantes, MENU y los emojis de número celestes nativos (1️⃣)
-            nombreAnime = textoBruto
-                .replace(/💠/g, "")
-                .replace(/𝙈𝙀𝙉𝙐/g, "")
-                .replace(/\./g, "")
-                .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '') 
-                .replace(/[0-9]\uFE0F?\u20E3/g, '') // <- Esto aniquila el número celeste nativo
-                .replace(/\s+/g, " ")
-                .trim();
-        }
-
-        // 3. En lugar de usar 'btn.title', inyectamos el número Y un globito oculto en el botón
-        btn.innerHTML = `
-            ${textoNumero}
-            <span class="episode-tooltip">${nombreAnime} - Episodio ${textoNumero}</span>
-        `;
-        // --- FIN DE LA LIMPIEZA EXTREMA ---
-
-        const rutaLimpia = window.location.pathname.replace(/\//g, ""); 
-        const esSubPagina = !isNaN(parseInt(rutaLimpia, 10));
-
-        if (!esSubPagina) {
-            // APLICAR SOLO EN LA PÁGINA PRINCIPAL (Globito oscuro y elegante)
-            btn.innerHTML = `
-                ${textoNumero}
-                <span class="episode-tooltip">${nombreAnime} - Episodio ${textoNumero}</span>
-            `;
-            btn.removeAttribute("title"); // Quitamos el nativo para que no se sobrepongan
-        } else {
-            // APLICAR EN ENLACES ESPECÍFICOS COMO /1416 (Título nativo de Windows)
-            btn.innerHTML = textoNumero; // Al asignar esto, nos aseguramos de que no exista el span del tooltip
-            btn.title = `${nombreAnime} - Episodio ${textoNumero}`;
-        }
-
-        // Asignar el clic para cambiar de video
-        btn.addEventListener("click", () => {
-            indiceActual = index;
-            cargarVideoEnReproductor();
-        });
-        
-        grid.appendChild(btn);
+    // 5. Asignar el clic para cambiar de video
+    btn.addEventListener("click", () => {
+        indiceActual = index;
+        cargarVideoEnReproductor();
     });
+    
+    grid.appendChild(btn);
+});
     
     actualizarCapituloActivo(); // Pintar el primero al cargar
 }
