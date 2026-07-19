@@ -222,9 +222,16 @@ function cargarVideoEnReproductor() {
     let tituloVideo = "Video sin descripción";
     let numeroEpisodio = "";
     
-    // 1. Extraer el texto base de la descripción
+    // 1. Extraer y limpiar el texto base de la descripción
     if (mensajeActual.message && mensajeActual.message.trim() !== "") {
-        tituloVideo = mensajeActual.message.trim();
+        let textoBruto = mensajeActual.message.trim();
+        
+        // LIMPIEZA: Quitamos rombos, la palabra MENU, puntos finales y espacios extra
+        tituloVideo = textoBruto.replace(/💠/g, "")
+                                .replace(/𝙈𝙀𝙉𝙐/g, "")
+                                .replace(/\./g, "")
+                                .replace(/\s+/g, " ") // Convierte múltiples espacios en uno solo
+                                .trim();
     }
 
     // 2. Extraer y traducir los Custom Emojis (Emojis Premium)
@@ -241,10 +248,10 @@ function cargarVideoEnReproductor() {
         }
     }
 
-    // 3. Construir el título final si encontramos números
+    // 3. Construir el título final (AQUÍ CAMBIAMOS EL ORDEN)
     if (numeroEpisodio !== "") {
-        // Combinamos el número traducido con el texto de la descripción
-        tituloVideo = `Episodio ${numeroEpisodio} - ${tituloVideo}`;
+        // Ahora ponemos primero el título limpio, luego el guion, y al final el episodio
+        tituloVideo = `${tituloVideo} - Episodio ${numeroEpisodio}`;
     }
     
     // Actualizamos la interfaz
