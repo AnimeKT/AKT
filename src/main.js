@@ -312,11 +312,14 @@ function cargarVideoEnReproductor() {
     const esSubPagina = !isNaN(parseInt(rutaActual, 10)) && rutaActual !== "";
 
     if (esSubPagina) {
-        // Si el link tiene un número (ej: /2233), muestra qué episodio estás viendo
-        tituloSeccion.textContent = `Estás viendo: ${textoDelEpisodio}`;
+        // Usamos innerHTML para meter saltos de línea y estilos diferentes
+        tituloSeccion.innerHTML = `
+            <span style="font-size: 13px; color: var(--secondary-text-color); font-weight: normal; display: block; margin-bottom: 2px;">Estás viendo</span>
+            <span style="font-size: 15px;">${textoDelEpisodio}</span>
+        `;
     } else {
         // Si es la página principal (/)
-        tituloSeccion.textContent = "Episodios recientes";
+        tituloSeccion.innerHTML = "Episodios recientes";
     }
 
     actualizarCapituloActivo();
