@@ -158,6 +158,12 @@ function cargarContenidoInicial() {
         buscarVideo("", topicId);
     } else {
         buscarVideo(""); 
+
+        if (window.location.pathname === '/') {
+            // AQUÍ VA TODO EL CÓDIGO DE LOS NOMBRES AL PASAR EL MOUSE
+            configurarNombresAnime();
+        }
+
     }
 }
 
@@ -758,6 +764,25 @@ function renderizarGridCapitulos() {
         // --- FIN DE LA MAGIA ---
 
         // Asignar el clic para cambiar de video
+        btn.addEventListener("click", () => {
+            indiceActual = index;
+            cargarVideoEnReproductor();
+        });
+
+        let nombreAnime = "Anime";
+        if (mensajeActual.message) {
+            // Limpiamos el texto del mensaje para sacar el nombre del anime limpio
+            nombreAnime = mensajeActual.message
+                .replace(/💠/g, "")
+                .replace(/𝙈𝙀𝙉𝙐/g, "")
+                .replace(/\./g, "")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+        
+        // Esto crea el "globito" nativo de Windows/Navegador al pasar el mouse
+        btn.title = `${nombreAnime} - Episodio ${btn.textContent}`;
+
         btn.addEventListener("click", () => {
             indiceActual = index;
             cargarVideoEnReproductor();
