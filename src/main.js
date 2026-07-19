@@ -802,6 +802,20 @@ function renderizarGridCapitulos() {
         `;
         // --- FIN DE LA LIMPIEZA EXTREMA ---
 
+        const rutaActual = window.location.pathname;
+        
+        if (rutaActual === "/" || rutaActual === "") {
+            // APLICAR SOLO EN https://akt-kappa.vercel.app/ (Globito oscuro y elegante)
+            btn.innerHTML = `
+                ${textoNumero}
+                <span class="episode-tooltip">${nombreAnime} - Episodio ${textoNumero}</span>
+            `;
+        } else {
+            // APLICAR EN ENLACES ESPECÍFICOS COMO /2233 (Título nativo de Windows)
+            btn.textContent = textoNumero;
+            btn.title = `${nombreAnime} - Episodio ${textoNumero}`;
+        }
+
         // Asignar el clic para cambiar de video
         btn.addEventListener("click", () => {
             indiceActual = index;
