@@ -195,81 +195,67 @@ async function buscarVideo(textoBusqueda, topicId = null) {
   }
 }
 
-// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y leer la descripción
+const EMOJI_A_NUMERO = {
+    '5217565067620394545': '𝟬',
+    '5215582188594016044': '𝟭',
+    '5217780859662250453': '𝟮',
+    '5217890123630260160': '𝟯',
+    '5217751121308690608': '𝟰',
+    '5217881379076843813': '𝟱',
+    '5215728329151228731': '𝟲',
+    '5217787607055869474': '𝟳',
+    '5217949372704108415': '𝟴',
+    '5217907505362907029': '𝟵'
+};
+
+// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 function cargarVideoEnReproductor() {
-    const mensajeActual = listaDeVideos[indiceActual];
-    const videoDoc = mensajeActual.media.document;
+    const mensajeActual = listaDeVideos[indiceActual];[cite: 3]
+    const videoDoc = mensajeActual.media.document;[cite: 3]
     
-    videoSeleccionado = videoDoc; // Guardamos para el Service Worker
-    const videoId = videoDoc.id.toString();
+    videoSeleccionado = videoDoc; // Guardamos para el Service Worker[cite: 3]
+    const videoId = videoDoc.id.toString();[cite: 3]
     
-    // ==========================================
-    // 1. EXTRAER TÍTULO DESDE LA DESCRIPCIÓN 
-    // ==========================================
-    let nombreLimpio = "Anime sin título";
+    let tituloVideo = "Video sin descripción";
+    let numeroEpisodio = "";
     
-    const textoMensaje = mensajeActual.message || ""; 
-    
-    if (textoMensaje !== "") {
-        // 1.1 Convertir los números especiales (del bot) a números normales
-        const mapNumeros = {
-            '𝟬': '0', '𝟭': '1', '𝟮': '2', '𝟯': '3', '𝟰': '4',
-            '𝟱': '5', '𝟲': '6', '𝟳': '7', '𝟴': '8', '𝟵': '9'
-        };
-        let textoNormalizado = textoMensaje.replace(/[𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵]/gu, m => mapNumeros[m]);
+    // 1. Extraer el texto base de la descripción[cite: 3]
+    if (mensajeActual.message && mensajeActual.message.trim() !== "") {
+        tituloVideo = mensajeActual.message.trim();
+    }
 
-        // 1.2 Separar por líneas y ELIMINAR las líneas que estén vacías
-        const lineas = textoNormalizado.split('\n').filter(linea => linea.trim() !== "");
-        
-        let nombreAnime = "";
-        let numeroCapitulo = "";
-
-        // 1.3 Buscar dinámicamente el contenido sin importar la línea
-        for (const linea of lineas) {
-            // Buscar la palabra Episodio o N°
-            if (linea.includes('𝗘𝗣𝗜𝗦𝗢𝗗𝗜𝗢') || linea.includes('N°') || linea.includes('EPISODIO')) {
-                const matchNumero = linea.match(/\d+/); 
-                if (matchNumero) {
-                    numeroCapitulo = matchNumero[0];
+    // 2. Extraer y traducir los Custom Emojis (Emojis Premium)
+    if (mensajeActual.entities && mensajeActual.entities.length > 0) {
+        for (const entidad of mensajeActual.entities) {
+            // En GramJS, los emojis animados tienen esta clase
+            if (entidad.className === 'MessageEntityCustomEmoji') {
+                // El ID del emoji viene en documentId (lo pasamos a string para el diccionario)
+                const emojiId = entidad.documentId.toString();
+                if (EMOJI_A_NUMERO[emojiId]) {
+                    numeroEpisodio += EMOJI_A_NUMERO[emojiId];
                 }
             }
+        }
+    }
 
-            // Buscar la etiqueta del Anime
-            if (linea.includes(':') && (linea.includes('𝑨𝒏𝒊𝒎𝒆') || linea.includes('Anime'))) {
-                let lineaAnime = linea.substring(linea.indexOf(':') + 1);
-                // Quitamos emojis y espacios
-                nombreAnime = lineaAnime.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
-            }
-        }
-        
-        // 1.4 Limpiar un punto al final si lo tiene (como en tu imagen: "T2 .")
-        if (nombreAnime.endsWith('.')) {
-            nombreAnime = nombreAnime.slice(0, -1).trim();
-        }
-
-        // 1.5 Unir todo en el formato exacto que pediste
-        if (nombreAnime && numeroCapitulo) {
-            nombreLimpio = `${nombreAnime} Cap - ${numeroCapitulo}`;
-        } else if (nombreAnime) {
-            nombreLimpio = nombreAnime;
-        } else if (numeroCapitulo) {
-            nombreLimpio = `Capítulo ${numeroCapitulo}`;
-        }
+    // 3. Construir el título final si encontramos números
+    if (numeroEpisodio !== "") {
+        // Combinamos el número traducido con el texto de la descripción
+        tituloVideo = `Episodio ${numeroEpisodio} - ${tituloVideo}`;
     }
     
     // Actualizamos la interfaz
-    document.getElementById("video-title").textContent = nombreLimpio;
+    document.getElementById("video-title").textContent = tituloVideo;[cite: 2, 3]
     
-    // ==========================================
-    // 2. Controlar si las flechas deben encenderse o apagarse
-    document.getElementById("btn-prev").disabled = (indiceActual === 0);
-    document.getElementById("btn-next").disabled = (indiceActual === listaDeVideos.length - 1);
+    // Controlar si las flechas deben encenderse o apagarse[cite: 3]
+    document.getElementById("btn-prev").disabled = (indiceActual === 0);[cite: 3]
+    document.getElementById("btn-next").disabled = (indiceActual === listaDeVideos.length - 1);[cite: 3]
     
-    // 3. Enviar al reproductor
-    const reproductor = document.getElementById("reproductor");
-    reproductor.src = `/stream/${videoId}`;
-    reproductor.preload = "auto";
-    reproductor.play().catch(() => console.log("Play automático bloqueado por el navegador"));
+    // Enviar al reproductor[cite: 3]
+    const reproductor = document.getElementById("reproductor");[cite: 3]
+    reproductor.src = `/stream/${videoId}`;[cite: 3]
+    reproductor.preload = "auto";[cite: 3]
+    reproductor.play().catch(() => console.log("Play automático bloqueado por el navegador"));[cite: 3]
 }
 
 // 4. Lógica de las flechas (Añade esto justo debajo de la función cargarVideoEnReproductor)
