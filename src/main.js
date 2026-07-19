@@ -726,11 +726,37 @@ function renderizarGridCapitulos() {
     container.style.display = "block"; 
     grid.innerHTML = ""; 
     
-    listaDeVideos.forEach((video, index) => {
+    // Cambiamos "video" por "mensajeActual" para analizar su contenido
+    listaDeVideos.forEach((mensajeActual, index) => {
         const btn = document.createElement("button");
         btn.className = "episode-btn";
-        btn.textContent = index + 1; 
         
+        // --- INICIO DE LA MAGIA PARA LEER EL "1.6" EN LOS BOTONES ---
+        let numeroEpisodio = "";
+        if (mensajeActual.entities && mensajeActual.entities.length > 0) {
+            const entidades = mensajeActual.entities.slice().sort((a, b) => a.offset - b.offset);
+            let posicionUltimoEmoji = 0;
+
+            for (const entidad of entidades) {
+                if (entidad.className === 'MessageEntityCustomEmoji') {
+                    const emojiId = entidad.documentId.toString();
+                    if (EMOJI_A_NUMERO[emojiId]) {
+                        const textoIntermedio = mensajeActual.message.substring(posicionUltimoEmoji, entidad.offset);
+                        // Si hay un punto entre los emojis numéricos, lo añade
+                        if (numeroEpisodio !== "" && textoIntermedio.includes('.')) {
+                            numeroEpisodio += ".";
+                        }
+                        numeroEpisodio += EMOJI_A_NUMERO[emojiId];
+                    }
+                }
+                posicionUltimoEmoji = entidad.offset + entidad.length;
+            }
+        }
+
+        // Si encontró un número con emojis (ej: "1.6"), lo usa. Si no, usa la posición normal (index + 1).
+        btn.textContent = numeroEpisodio !== "" ? numeroEpisodio : (index + 1);
+        // --- FIN DE LA MAGIA ---
+
         // Asignar el clic para cambiar de video
         btn.addEventListener("click", () => {
             indiceActual = index;
