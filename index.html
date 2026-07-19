@@ -74,8 +74,7 @@
             overflow: hidden;
             background: #2a2a35; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border: 2px solid transparent; /* Ya tenías esto */
-            box-sizing: border-box; /* <--- AÑADE ESTA LÍNEA AQUÍ */
+            border: 2px solid transparent;
             transition: border-color 0.2s;
         }
 
@@ -355,13 +354,6 @@
             padding: 10px 20px; cursor: pointer; color: white; font-size: 14px; text-align: center; transition: 0.2s;
         }
         .speed-option:hover { background: rgba(255,255,255,0.1); color: var(--primary-color); }
-
-        @media (min-width: 850px) {
-        #episodes-grid {
-        /* Fuerza exactamente 4 columnas del mismo tamaño */
-        grid-template-columns: repeat(4, 1fr) !important; 
-    }
-}
 
         
     </style>
