@@ -799,17 +799,17 @@ function renderizarGridCapitulos() {
     const grid = document.getElementById("episodes-grid");
     const container = document.getElementById("episodes-container");
     
-    // 1. Detectamos si estamos en una ruta con número (ej: /1416)
+    // --- NUEVA VALIDACIÓN: COMPROBAR LA URL ---
     const rutaActual = window.location.pathname.replace(/\//g, "");
     const esSubPagina = !isNaN(parseInt(rutaActual, 10)) && rutaActual !== "";
 
-    // 2. Si es un enlace numerado, ocultamos el contenedor y detenemos la función
+    // Si es un link con número (ej: /2333), ocultamos el contenedor y detenemos la función
     if (esSubPagina) {
         if (container) container.style.display = "none";
-        return;
+        return; // Detiene la ejecución aquí mismo
     }
+    // ------------------------------------------
 
-    // 3. Validaciones originales
     if (!grid || listaDeVideos.length === 0) return;
     
     container.style.display = "block"; 
@@ -851,9 +851,9 @@ function renderizarGridCapitulos() {
 
         // Si no hay emojis numéricos, calcular por su posición
         if (!textoNumero) {
-            const rutaActual = window.location.pathname.replace(/\//g, "");
-            const esSubPagina = !isNaN(parseInt(rutaActual, 10)) && rutaActual !== "";
-            textoNumero = esSubPagina ? (index + 1).toString() : (listaDeVideos.length - index).toString();
+            // Ya sabemos que aquí esSubPagina siempre será false (por la validación de arriba),
+            // pero lo dejamos para mantener la lógica original.
+            textoNumero = (listaDeVideos.length - index).toString();
         }
         // --- FIN DE LA EXTRACCIÓN ---
 
