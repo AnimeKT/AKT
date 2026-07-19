@@ -804,93 +804,112 @@ function renderizarGridCapitulos() {
     container.style.display = "block"; 
     grid.innerHTML = ""; 
     
-    // Cambiamos "video" por "mensajeActual" para analizar su contenido
     listaDeVideos.forEach((mensajeActual, index) => {
-    const btn = document.createElement("button");
-    btn.className = "episode-card"; 
+        const btn = document.createElement("button");
+        btn.className = "episode-card"; 
 
-    // ... [Tu código intacto de limpieza y extracción de "textoNumero" y "nombreAnime"] ...
+        // --- 1. EXTRACCIÓN RESTAURADA DE NOMBRE Y NÚMERO ---
+        let nombreAnime = "Anime";
+        let textoNumero = "";
 
-    // 1. Preparamos un ID único para inyectar el archivo visual
-    const mediaId = `media-${mensajeActual.id}`;
-    
-    // 2. Comparamos el nombre del anime del video actual con nuestro diccionario de portadas
-    const nombreVideoLimpio = nombreAnime.trim().toLowerCase();
-    let mediaAsignada = null;
+        if (mensajeActual.message) {
+            let textoBruto = mensajeActual.message;
+            if (mensajeActual.entities) {
+                const entidades = mensajeActual.entities.slice().sort((a, b) => a.offset - b.offset);
+                let pos = 0;
+                let numTemp = "";
+                let textoSinEmojis = "";
 
-    for (let nombreEnCanal in portadasDesdeCanal) {
-        // Si el nombre del canal está incluido en el nombre del video (o viceversa)
-        if (nombreVideoLimpio.includes(nombreEnCanal) || nombreEnCanal.includes(nombreVideoLimpio)) {
-            mediaAsignada = portadasDesdeCanal[nombreEnCanal];
-            break;
-        }
-    }
+                for (const ent of entidades) {
+                    if (ent.className === 'MessageEntityCustomEmoji' && EMOJI_A_NUMERO[ent.documentId.toString()]) {
+                        const emojiStr = EMOJI_A_NUMERO[ent.documentId.toString()];
+                        const textoIntermedio = mensajeActual.message.substring(pos, ent.offset);
+                        if (numTemp !== "" && textoIntermedio.includes('.')) numTemp += ".";
+                        numTemp += emojiStr;
 
-    // 3. Estructura HTML de la tarjeta (Netflix style)
-    btn.innerHTML = `
-        <div class="episode-card-image-wrapper" id="wrapper-${mediaId}">
-            <!-- Texto de carga temporal -->
-            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #888;">Cargando...</div>
-            
-            <span class="episode-badge">Episodio ${textoNumero}</span>
-            <span class="time-badge">Reciente</span> 
-        </div>
-        <div class="episode-card-title" title="${nombreAnime}">
-            ${nombreAnime}
-        </div>
-    `;
-
-    // 4. Descargar e inyectar el GIF/Imagen si encontramos coincidencia
-    if (mediaAsignada) {
-        // Determinamos si es un GIF (Documento MP4) o una Foto estática
-        const esGif = mediaAsignada.className === 'MessageMediaDocument';
-
-        client.downloadMedia(mediaAsignada).then(buffer => {
-            if (buffer) {
-                const wrapper = document.getElementById(`wrapper-${mediaId}`);
-                if (!wrapper) return;
-
-                // Borramos el texto de "Cargando..."
-                wrapper.innerHTML = `
-                    <span class="episode-badge">Episodio ${textoNumero}</span>
-                    <span class="time-badge">Reciente</span>
-                `;
-
-                if (esGif) {
-                    // Creamos el blob como video MP4 (los GIFs en Telegram son MP4)
-                    const blob = new Blob([buffer], { type: 'video/mp4' });
-                    const url = URL.createObjectURL(blob);
-                    
-                    wrapper.innerHTML += `
-                        <video src="${url}" class="episode-card-img" autoplay loop muted playsinline style="object-fit: cover; pointer-events: none;"></video>
-                    `;
-                } else {
-                    // Creamos el blob como imagen JPG
-                    const blob = new Blob([buffer], { type: 'image/jpeg' });
-                    const url = URL.createObjectURL(blob);
-                    
-                    wrapper.innerHTML += `
-                        <img src="${url}" class="episode-card-img" style="object-fit: cover;">
-                    `;
+                        textoSinEmojis += textoBruto.substring(pos, ent.offset);
+                        pos = ent.offset + ent.length;
+                    }
                 }
+                textoSinEmojis += textoBruto.substring(pos);
+                textoNumero = numTemp;
+                textoBruto = textoSinEmojis;
             }
-        }).catch(err => console.log("Error descargando miniatura para:", nombreAnime));
-    }
+            nombreAnime = textoBruto.replace(/💠/g, "").replace(/𝙈𝙀𝙉𝙐/g, "").replace(/\./g, "").replace(/\s+/g, " ").trim();
+        }
 
-    // 5. Asignar el clic para cambiar de video
-    btn.addEventListener("click", () => {
-        indiceActual = index;
-        cargarVideoEnReproductor();
+        // Si no hay emojis numéricos, calcular por su posición
+        if (!textoNumero) {
+            const rutaActual = window.location.pathname.replace(/\//g, "");
+            const esSubPagina = !isNaN(parseInt(rutaActual, 10)) && rutaActual !== "";
+            textoNumero = esSubPagina ? (index + 1).toString() : (listaDeVideos.length - index).toString();
+        }
+        // --- FIN DE LA EXTRACCIÓN ---
+
+        // 2. Preparamos un ID único y cruzamos datos con el canal
+        const mediaId = `media-${mensajeActual.id}`;
+        const nombreVideoLimpio = nombreAnime.trim().toLowerCase();
+        let mediaAsignada = null;
+
+        for (let nombreEnCanal in portadasDesdeCanal) {
+            if (nombreVideoLimpio.includes(nombreEnCanal) || nombreEnCanal.includes(nombreVideoLimpio)) {
+                mediaAsignada = portadasDesdeCanal[nombreEnCanal];
+                break;
+            }
+        }
+
+        // 3. Estructura HTML de la tarjeta
+        btn.innerHTML = `
+            <div class="episode-card-image-wrapper" id="wrapper-${mediaId}">
+                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #888;">Cargando...</div>
+                <span class="episode-badge">Episodio ${textoNumero}</span>
+                <span class="time-badge">Reciente</span> 
+            </div>
+            <div class="episode-card-title" title="${nombreAnime}">
+                ${nombreAnime}
+            </div>
+        `;
+
+        // 4. Descargar e inyectar el GIF/Imagen si encontramos coincidencia
+        if (mediaAsignada) {
+            const esGif = mediaAsignada.className === 'MessageMediaDocument';
+            client.downloadMedia(mediaAsignada).then(buffer => {
+                if (buffer) {
+                    const wrapper = document.getElementById(`wrapper-${mediaId}`);
+                    if (!wrapper) return;
+
+                    wrapper.innerHTML = `
+                        <span class="episode-badge">Episodio ${textoNumero}</span>
+                        <span class="time-badge">Reciente</span>
+                    `;
+
+                    if (esGif) {
+                        const blob = new Blob([buffer], { type: 'video/mp4' });
+                        const url = URL.createObjectURL(blob);
+                        wrapper.innerHTML += `<video src="${url}" class="episode-card-img" autoplay loop muted playsinline style="object-fit: cover; pointer-events: none;"></video>`;
+                    } else {
+                        const blob = new Blob([buffer], { type: 'image/jpeg' });
+                        const url = URL.createObjectURL(blob);
+                        wrapper.innerHTML += `<img src="${url}" class="episode-card-img" style="object-fit: cover;">`;
+                    }
+                }
+            }).catch(err => console.log("Error descargando miniatura para:", nombreAnime));
+        }
+
+        // 5. Asignar el clic
+        btn.addEventListener("click", () => {
+            indiceActual = index;
+            cargarVideoEnReproductor();
+        });
+        
+        grid.appendChild(btn);
     });
     
-    grid.appendChild(btn);
-});
-    
-    actualizarCapituloActivo(); // Pintar el primero al cargar
+    actualizarCapituloActivo();
 }
 
 function actualizarCapituloActivo() {
-    const botones = document.querySelectorAll(".episode-btn");
+    const botones = document.querySelectorAll(".episode-card");
     botones.forEach((btn, index) => {
         if (index === indiceActual) {
             btn.classList.add("active");
