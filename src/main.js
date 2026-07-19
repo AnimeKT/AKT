@@ -195,6 +195,9 @@ async function buscarVideo(textoBusqueda, topicId = null) {
   }
 }
 
+// ==========================================
+// DICCIONARIO INVERSO: ID PREMIUM -> NÚMERO
+// ==========================================
 const EMOJI_A_NUMERO = {
     '5217565067620394545': '𝟬',
     '5215582188594016044': '𝟭',
@@ -210,16 +213,16 @@ const EMOJI_A_NUMERO = {
 
 // NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 function cargarVideoEnReproductor() {
-    const mensajeActual = listaDeVideos[indiceActual];[cite: 3]
-    const videoDoc = mensajeActual.media.document;[cite: 3]
+    const mensajeActual = listaDeVideos[indiceActual];
+    const videoDoc = mensajeActual.media.document;
     
-    videoSeleccionado = videoDoc; // Guardamos para el Service Worker[cite: 3]
-    const videoId = videoDoc.id.toString();[cite: 3]
+    videoSeleccionado = videoDoc; // Guardamos para el Service Worker
+    const videoId = videoDoc.id.toString();
     
     let tituloVideo = "Video sin descripción";
     let numeroEpisodio = "";
     
-    // 1. Extraer el texto base de la descripción[cite: 3]
+    // 1. Extraer el texto base de la descripción
     if (mensajeActual.message && mensajeActual.message.trim() !== "") {
         tituloVideo = mensajeActual.message.trim();
     }
@@ -245,17 +248,17 @@ function cargarVideoEnReproductor() {
     }
     
     // Actualizamos la interfaz
-    document.getElementById("video-title").textContent = tituloVideo;[cite: 2, 3]
+    document.getElementById("video-title").textContent = tituloVideo;
     
-    // Controlar si las flechas deben encenderse o apagarse[cite: 3]
-    document.getElementById("btn-prev").disabled = (indiceActual === 0);[cite: 3]
-    document.getElementById("btn-next").disabled = (indiceActual === listaDeVideos.length - 1);[cite: 3]
+    // Controlar si las flechas deben encenderse o apagarse
+    document.getElementById("btn-prev").disabled = (indiceActual === 0);
+    document.getElementById("btn-next").disabled = (indiceActual === listaDeVideos.length - 1);
     
-    // Enviar al reproductor[cite: 3]
-    const reproductor = document.getElementById("reproductor");[cite: 3]
-    reproductor.src = `/stream/${videoId}`;[cite: 3]
-    reproductor.preload = "auto";[cite: 3]
-    reproductor.play().catch(() => console.log("Play automático bloqueado por el navegador"));[cite: 3]
+    // Enviar al reproductor
+    const reproductor = document.getElementById("reproductor");
+    reproductor.src = `/stream/${videoId}`;
+    reproductor.preload = "auto";
+    reproductor.play().catch(() => console.log("Play automático bloqueado por el navegador"));
 }
 
 // 4. Lógica de las flechas (Añade esto justo debajo de la función cargarVideoEnReproductor)
