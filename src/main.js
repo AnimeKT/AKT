@@ -212,67 +212,52 @@ const EMOJI_A_NUMERO = {
 };
 
 // NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
-// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
-// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 function cargarVideoEnReproductor() {
     const mensajeActual = listaDeVideos[indiceActual];
     const videoDoc = mensajeActual.media.document;
     
-    videoSeleccionado = videoDoc; 
+    videoSeleccionado = videoDoc; // Guardamos para el Service Worker
     const videoId = videoDoc.id.toString();
     
     let tituloVideo = "Video sin descripción";
     let numeroEpisodio = "";
     
-    // 1. Extraer y limpiar el texto base
+    // 1. Extraer y limpiar el texto base de la descripción
     if (mensajeActual.message && mensajeActual.message.trim() !== "") {
         let textoBruto = mensajeActual.message.trim();
         
-        // LIMPIEZA: Eliminamos rombos, MENU, puntos del título y AHORA también emojis estándar
-        // Esta Regex quita la mayoría de emojis estándar que pueden aparecer
+        // LIMPIEZA: Quitamos rombos, la palabra MENU, puntos finales y espacios extra
         tituloVideo = textoBruto.replace(/💠/g, "")
                                 .replace(/𝙈𝙀𝙉𝙐/g, "")
                                 .replace(/\./g, "")
-                                // Esta línea quita emojis estándar (1️⃣, etc)
-                                .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F1E0}-\u{1F1FF}]/gu, "")
-                                .replace(/\s+/g, " ") 
+                                .replace(/\s+/g, " ") // Convierte múltiples espacios en uno solo
                                 .trim();
     }
 
-    // 2. Extraer los Custom Emojis (Premium) y detectar puntos normales para el 1.5
+    // 2. Extraer y traducir los Custom Emojis (Emojis Premium)
     if (mensajeActual.entities && mensajeActual.entities.length > 0) {
-        // Ordenamos las entidades de izquierda a derecha
-        const entidades = mensajeActual.entities.sort((a, b) => a.offset - b.offset);
-        let posicionUltimoEmoji = 0;
-
-        for (const entidad of entidades) {
+        for (const entidad of mensajeActual.entities) {
+            // En GramJS, los emojis animados tienen esta clase
             if (entidad.className === 'MessageEntityCustomEmoji') {
+                // El ID del emoji viene en documentId (lo pasamos a string para el diccionario)
                 const emojiId = entidad.documentId.toString();
-                
                 if (EMOJI_A_NUMERO[emojiId]) {
-                    // Verificamos si hay un punto normal entre el número anterior y este
-                    const textoIntermedio = mensajeActual.message.substring(posicionUltimoEmoji, entidad.offset);
-                    
-                    if (numeroEpisodio !== "" && textoIntermedio.includes('.')) {
-                        numeroEpisodio += ".";
-                    }
-                    
                     numeroEpisodio += EMOJI_A_NUMERO[emojiId];
                 }
             }
-            posicionUltimoEmoji = entidad.offset + entidad.length;
         }
     }
 
-    // 3. Construir el título final
+    // 3. Construir el título final (AQUÍ CAMBIAMOS EL ORDEN)
     if (numeroEpisodio !== "") {
+        // Ahora ponemos primero el título limpio, luego el guion, y al final el episodio
         tituloVideo = `${tituloVideo} - Episodio ${numeroEpisodio}`;
     }
     
     // Actualizamos la interfaz
     document.getElementById("video-title").textContent = tituloVideo;
     
-    // Controlar botones
+    // Controlar si las flechas deben encenderse o apagarse
     document.getElementById("btn-prev").disabled = (indiceActual === 0);
     document.getElementById("btn-next").disabled = (indiceActual === listaDeVideos.length - 1);
     
@@ -282,6 +267,7 @@ function cargarVideoEnReproductor() {
     reproductor.preload = "auto";
     reproductor.play().catch(() => console.log("Play automático bloqueado por el navegador"));
 }
+
 // 4. Lógica de las flechas (Añade esto justo debajo de la función cargarVideoEnReproductor)
 document.getElementById("btn-prev").addEventListener("click", () => {
     if (indiceActual > 0) {
