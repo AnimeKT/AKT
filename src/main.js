@@ -389,19 +389,22 @@ progressSlider.addEventListener("change", (e) => {
 progressWrapper.addEventListener("mousemove", (e) => {
     if (!video.duration) return;
 
-    // Calcular posición del ratón sobre la barra
-    const rect = progressWrapper.getBoundingClientRect();
-    let pos = (e.clientX - rect.left) / rect.width;
+    // 1. Calculamos el tiempo usando los límites EXACTOS de la línea del slider
+    const sliderRect = progressSlider.getBoundingClientRect();
+    let pos = (e.clientX - sliderRect.left) / sliderRect.width;
     
-    // Limitar posición entre 0 y 1
+    // Limitar posición entre 0 y 1 para que el tiempo no dé negativo o se pase
     pos = Math.max(0, Math.min(1, pos)); 
 
-    // Calcular qué tiempo representa esa posición
+    // Escribir el tiempo en el tooltip
     const hoverTime = pos * video.duration;
     timeTooltip.textContent = formatTime(hoverTime);
 
-    // Mover el tooltip para que siga al ratón
-    timeTooltip.style.left = `calc(${pos * 100}% - 10px)`; 
+    // 2. Mover el tooltip al pixel exacto donde está el ratón (para que la flecha quede perfecta)
+    const wrapperRect = progressWrapper.getBoundingClientRect();
+    const mouseX = e.clientX - wrapperRect.left;
+    
+    timeTooltip.style.left = `${mouseX}px`; 
 });
 
 // Control de Volumen
