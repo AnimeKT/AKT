@@ -361,6 +361,34 @@
         /* Fuerza exactamente 4 columnas del mismo tamaño */
         grid-template-columns: repeat(4, 1fr) !important; 
     }
+
+        /* Botón superior derecho para ir a la lista de capítulos */
+        .series-link-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(43, 43, 54, 0.9);
+            color: #fff;
+            padding: 6px;
+            border-radius: 6px;
+            z-index: 10;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .series-link-btn:hover {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .series-link-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
 }
 
         

@@ -853,6 +853,24 @@ function renderizarGridCapitulos() {
         }
         // --- FIN DE LA EXTRACCIÓN ---
 
+        // ====================================================
+        // NUEVO: CREAR EL BOTÓN PARA IR AL TEMA DEL ANIME
+        // ====================================================
+        let urlTopic = "/"; 
+        // Telegram guarda el ID del Topic en replyToTopId o replyToMsgId
+        if (mensajeActual.replyTo) {
+            let topId = mensajeActual.replyTo.replyToTopId || mensajeActual.replyTo.replyToMsgId;
+            if (topId) urlTopic = `/${topId}`;
+        }
+        
+        // IMPORTANTE: onclick="event.stopPropagation();" evita que al darle clic al botón se reproduzca el video
+        const botonTopicHTML = `
+            <a href="${urlTopic}" class="series-link-btn" title="Ir a la lista de capítulos" onclick="event.stopPropagation();">
+                <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+            </a>
+        `;
+        // ====================================================
+
         // 2. Preparamos datos cruzados dependiendo de dónde estemos
         const mediaId = `media-${mensajeActual.id}`;
         const nombreVideoLimpio = nombreAnime.trim().toLowerCase();
@@ -877,6 +895,7 @@ function renderizarGridCapitulos() {
                 <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #888;">Cargando...</div>
                 <span class="episode-badge">Episodio ${textoNumero}</span>
                 <span class="time-badge">Reciente</span> 
+                ${botonTopicHTML}
             </div>
             <div class="episode-card-title" title="${nombreAnime}">
                 ${nombreAnime}
@@ -898,6 +917,7 @@ function renderizarGridCapitulos() {
                         wrapper.innerHTML = `
                             <span class="episode-badge">Episodio ${textoNumero}</span>
                             <span class="time-badge">Reciente</span>
+                            ${botonTopicHTML}
                         `;
 
                         if (esGif) {
