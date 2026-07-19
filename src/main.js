@@ -759,30 +759,50 @@ function renderizarGridCapitulos() {
             }
         }
 
-        // Si encontró un número con emojis (ej: "1.6"), lo usa. Si no, usa la posición normal (index + 1).
-        btn.textContent = numeroEpisodio !== "" ? numeroEpisodio : (index + 1);
+        // Variable que guarda el número final del botón
+        const textoNumero = numeroEpisodio !== "" ? numeroEpisodio : (index + 1);
         // --- FIN DE LA MAGIA ---
 
-        // Asignar el clic para cambiar de video
-        btn.addEventListener("click", () => {
-            indiceActual = index;
-            cargarVideoEnReproductor();
-        });
-
+        // --- INICIO DE LA LIMPIEZA EXTREMA Y CREACIÓN DEL GLOBITO ---
         let nombreAnime = "Anime";
         if (mensajeActual.message) {
-            // Limpiamos el texto del mensaje para sacar el nombre del anime limpio
-            nombreAnime = mensajeActual.message
+            let textoBruto = mensajeActual.message;
+            
+            // 1. Extraer y borrar los emojis Premium/Custom de Telegram del texto
+            if (mensajeActual.entities && mensajeActual.entities.length > 0) {
+                const emojisPremium = mensajeActual.entities
+                    .filter(e => e.className === 'MessageEntityCustomEmoji')
+                    .sort((a, b) => a.offset - b.offset);
+                    
+                let temp = "";
+                let ultimo = 0;
+                for (const e of emojisPremium) {
+                    temp += textoBruto.substring(ultimo, e.offset);
+                    ultimo = e.offset + e.length;
+                }
+                temp += textoBruto.substring(ultimo);
+                textoBruto = temp;
+            }
+
+            // 2. Limpieza final: Quita diamantes, MENU y los emojis de número celestes nativos (1️⃣)
+            nombreAnime = textoBruto
                 .replace(/💠/g, "")
                 .replace(/𝙈𝙀𝙉𝙐/g, "")
                 .replace(/\./g, "")
+                .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '') 
+                .replace(/[0-9]\uFE0F?\u20E3/g, '') // <- Esto aniquila el número celeste nativo
                 .replace(/\s+/g, " ")
                 .trim();
         }
-        
-        // Esto crea el "globito" nativo de Windows/Navegador al pasar el mouse
-        btn.title = `${nombreAnime} - Episodio ${btn.textContent}`;
 
+        // 3. En lugar de usar 'btn.title', inyectamos el número Y un globito oculto en el botón
+        btn.innerHTML = `
+            ${textoNumero}
+            <span class="episode-tooltip">${nombreAnime} - Episodio ${textoNumero}</span>
+        `;
+        // --- FIN DE LA LIMPIEZA EXTREMA ---
+
+        // Asignar el clic para cambiar de video
         btn.addEventListener("click", () => {
             indiceActual = index;
             cargarVideoEnReproductor();
