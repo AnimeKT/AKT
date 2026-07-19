@@ -799,27 +799,24 @@ function renderizarGridCapitulos() {
     const grid = document.getElementById("episodes-grid");
     const container = document.getElementById("episodes-container");
     
-    // --- NUEVA VALIDACIÓN: COMPROBAR LA URL ---
+    // --- COMPROBAR LA URL PARA SEPARAR LA LÓGICA ---
     const rutaActual = window.location.pathname.replace(/\//g, "");
     const esSubPagina = !isNaN(parseInt(rutaActual, 10)) && rutaActual !== "";
 
-    // Si es un link con número (ej: /2333), ocultamos el contenedor y detenemos la función
-    if (esSubPagina) {
+    // ¡ELIMINAMOS EL RETURN OCULTO! Ahora la función seguirá corriendo en /881
+    if (!grid || listaDeVideos.length === 0) {
         if (container) container.style.display = "none";
-        return; // Detiene la ejecución aquí mismo
+        return;
     }
-    // ------------------------------------------
-
-    if (!grid || listaDeVideos.length === 0) return;
     
     container.style.display = "block"; 
     grid.innerHTML = ""; 
     
     listaDeVideos.forEach((mensajeActual, index) => {
         const btn = document.createElement("button");
-        btn.className = "episode-card"; 
+        btn.className = "episode-card"; // Reutilizamos tu CSS actual
 
-        // --- 1. EXTRACCIÓN RESTAURADA DE NOMBRE Y NÚMERO ---
+        // --- 1. EXTRACCIÓN DE NOMBRE Y NÚMERO ---
         let nombreAnime = "Anime";
         let textoNumero = "";
 
@@ -851,25 +848,30 @@ function renderizarGridCapitulos() {
 
         // Si no hay emojis numéricos, calcular por su posición
         if (!textoNumero) {
-            // Ya sabemos que aquí esSubPagina siempre será false (por la validación de arriba),
-            // pero lo dejamos para mantener la lógica original.
-            textoNumero = (listaDeVideos.length - index).toString();
+            // NUEVO: En la sub-página la lista va al revés (1, 2, 3...), en la principal va hacia atrás (20, 19...)
+            textoNumero = esSubPagina ? (index + 1).toString() : (listaDeVideos.length - index).toString();
         }
         // --- FIN DE LA EXTRACCIÓN ---
 
-        // 2. Preparamos un ID único y cruzamos datos con el canal
+        // 2. Preparamos datos cruzados dependiendo de dónde estemos
         const mediaId = `media-${mensajeActual.id}`;
         const nombreVideoLimpio = nombreAnime.trim().toLowerCase();
         let mediaAsignada = null;
 
-        for (let nombreEnCanal in portadasDesdeCanal) {
-            if (nombreVideoLimpio.includes(nombreEnCanal) || nombreEnCanal.includes(nombreVideoLimpio)) {
-                mediaAsignada = portadasDesdeCanal[nombreEnCanal];
-                break;
+        if (!esSubPagina) {
+            // LÓGICA PÁGINA PRINCIPAL: Buscamos coincidencia en el canal de notificaciones
+            for (let nombreEnCanal in portadasDesdeCanal) {
+                if (nombreVideoLimpio.includes(nombreEnCanal) || nombreEnCanal.includes(nombreVideoLimpio)) {
+                    mediaAsignada = portadasDesdeCanal[nombreEnCanal];
+                    break;
+                }
             }
+        } else {
+            // LÓGICA LINKS CON NÚMERO (/881): Pasamos el propio mensaje del video
+            mediaAsignada = mensajeActual;
         }
 
-        // 3. Estructura HTML de la tarjeta
+        // 3. Estructura HTML de la tarjeta (Idéntica para ambas páginas)
         btn.innerHTML = `
             <div class="episode-card-image-wrapper" id="wrapper-${mediaId}">
                 <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #888;">Cargando...</div>
@@ -881,36 +883,65 @@ function renderizarGridCapitulos() {
             </div>
         `;
 
-        // 4. Descargar e inyectar el GIF/Imagen si encontramos coincidencia
+        // 4. Descargar e inyectar el GIF/Imagen/Miniatura
         if (mediaAsignada) {
-            const esGif = mediaAsignada.className === 'MessageMediaDocument';
-            client.downloadMedia(mediaAsignada).then(buffer => {
-                if (buffer) {
-                    const wrapper = document.getElementById(`wrapper-${mediaId}`);
-                    if (!wrapper) return;
+            if (!esSubPagina) {
+                // ==========================================
+                // DESCARGA PARA PÁGINA PRINCIPAL (GIFS/FOTOS)
+                // ==========================================
+                const esGif = mediaAsignada.className === 'MessageMediaDocument';
+                client.downloadMedia(mediaAsignada).then(buffer => {
+                    if (buffer) {
+                        const wrapper = document.getElementById(`wrapper-${mediaId}`);
+                        if (!wrapper) return;
 
-                    wrapper.innerHTML = `
-                        <span class="episode-badge">Episodio ${textoNumero}</span>
-                        <span class="time-badge">Reciente</span>
-                    `;
+                        wrapper.innerHTML = `
+                            <span class="episode-badge">Episodio ${textoNumero}</span>
+                            <span class="time-badge">Reciente</span>
+                        `;
 
-                    if (esGif) {
-                        const blob = new Blob([buffer], { type: 'video/mp4' });
-                        const url = URL.createObjectURL(blob);
-                        wrapper.innerHTML += `<video src="${url}" class="episode-card-img" autoplay loop muted playsinline style="object-fit: cover; pointer-events: none;"></video>`;
-                    } else {
+                        if (esGif) {
+                            const blob = new Blob([buffer], { type: 'video/mp4' });
+                            const url = URL.createObjectURL(blob);
+                            wrapper.innerHTML += `<video src="${url}" class="episode-card-img" autoplay loop muted playsinline style="object-fit: cover; pointer-events: none;"></video>`;
+                        } else {
+                            const blob = new Blob([buffer], { type: 'image/jpeg' });
+                            const url = URL.createObjectURL(blob);
+                            wrapper.innerHTML += `<img src="${url}" class="episode-card-img" style="object-fit: cover;">`;
+                        }
+                    }
+                }).catch(err => console.log("Error descargando portada del canal para:", nombreAnime));
+                
+            } else {
+                // ==========================================
+                // DESCARGA PARA ENLACES CON NÚMEROS (MINIATURA DEL VIDEO)
+                // ==========================================
+                // MAGIA: El parámetro { thumb: 1 } le dice a Telegram que descargue 
+                // solo el fotograma (miniatura) del video en lugar del video pesado de 1GB.
+                client.downloadMedia(mediaAsignada, { thumb: 1 }).then(buffer => {
+                    if (buffer) {
+                        const wrapper = document.getElementById(`wrapper-${mediaId}`);
+                        if (!wrapper) return;
+
+                        wrapper.innerHTML = `
+                            <span class="episode-badge">Episodio ${textoNumero}</span>
+                            <span class="time-badge">Reciente</span>
+                        `;
+                        // Las miniaturas de Telegram siempre son en formato imagen JPEG
                         const blob = new Blob([buffer], { type: 'image/jpeg' });
                         const url = URL.createObjectURL(blob);
                         wrapper.innerHTML += `<img src="${url}" class="episode-card-img" style="object-fit: cover;">`;
                     }
-                }
-            }).catch(err => console.log("Error descargando miniatura para:", nombreAnime));
+                }).catch(err => console.log("Error descargando miniatura interna del video para:", nombreAnime));
+            }
         }
 
         // 5. Asignar el clic
         btn.addEventListener("click", () => {
             indiceActual = index;
             cargarVideoEnReproductor();
+            // Desplazamos suavemente al usuario hacia arriba para ver el video seleccionado
+            document.getElementById("video-wrapper").scrollIntoView({ behavior: "smooth", block: "center" });
         });
         
         grid.appendChild(btn);
