@@ -175,7 +175,7 @@ async function buscarVideo(textoBusqueda, topicId = null) {
         peer: "@AnimeKTe", 
         q: textoBusqueda, 
         filter: new Api.InputMessagesFilterVideo(), 
-        limit: 50, // Aumentamos el límite para capturar toda la temporada
+        limit: 100, // Aumentamos el límite para capturar toda la temporada
     };
 
     if (topicId) parametrosBusqueda.topMsgId = topicId;
@@ -802,17 +802,19 @@ function renderizarGridCapitulos() {
         `;
         // --- FIN DE LA LIMPIEZA EXTREMA ---
 
-        const rutaActual = window.location.pathname;
-        
-        if (rutaActual === "/" || rutaActual === "") {
-            // APLICAR SOLO EN https://akt-kappa.vercel.app/ (Globito oscuro y elegante)
+        const rutaLimpia = window.location.pathname.replace(/\//g, ""); 
+        const esSubPagina = !isNaN(parseInt(rutaLimpia, 10));
+
+        if (!esSubPagina) {
+            // APLICAR SOLO EN LA PÁGINA PRINCIPAL (Globito oscuro y elegante)
             btn.innerHTML = `
                 ${textoNumero}
                 <span class="episode-tooltip">${nombreAnime} - Episodio ${textoNumero}</span>
             `;
+            btn.removeAttribute("title"); // Quitamos el nativo para que no se sobrepongan
         } else {
-            // APLICAR EN ENLACES ESPECÍFICOS COMO /2233 (Título nativo de Windows)
-            btn.textContent = textoNumero;
+            // APLICAR EN ENLACES ESPECÍFICOS COMO /1416 (Título nativo de Windows)
+            btn.innerHTML = textoNumero; // Al asignar esto, nos aseguramos de que no exista el span del tooltip
             btn.title = `${nombreAnime} - Episodio ${textoNumero}`;
         }
 
