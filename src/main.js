@@ -213,6 +213,7 @@ const EMOJI_A_NUMERO = {
 
 // NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 // NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
+// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 function cargarVideoEnReproductor() {
     const mensajeActual = listaDeVideos[indiceActual];
     const videoDoc = mensajeActual.media.document;
@@ -227,7 +228,8 @@ function cargarVideoEnReproductor() {
     if (mensajeActual.message && mensajeActual.message.trim() !== "") {
         let textoBruto = mensajeActual.message.trim();
         
-        // Limpiamos los adornos (incluyendo el punto para que no ensucie el nombre del anime)
+        // LIMPIEZA: Eliminamos rombos, MENU, puntos del título y AHORA también emojis estándar
+        // Esta Regex quita la mayoría de emojis estándar que pueden aparecer
         tituloVideo = textoBruto.replace(/💠/g, "")
                                 .replace(/𝙈𝙀𝙉𝙐/g, "")
                                 .replace(/\./g, "")
@@ -237,7 +239,7 @@ function cargarVideoEnReproductor() {
                                 .trim();
     }
 
-    // 2. Extraer los Custom Emojis y detectar puntos normales intermedios
+    // 2. Extraer los Custom Emojis (Premium) y detectar puntos normales para el 1.5
     if (mensajeActual.entities && mensajeActual.entities.length > 0) {
         // Ordenamos las entidades de izquierda a derecha
         const entidades = mensajeActual.entities.sort((a, b) => a.offset - b.offset);
@@ -248,19 +250,16 @@ function cargarVideoEnReproductor() {
                 const emojiId = entidad.documentId.toString();
                 
                 if (EMOJI_A_NUMERO[emojiId]) {
-                    // MAGIA AQUÍ: Leemos el texto normal que quedó entre el número anterior y este
+                    // Verificamos si hay un punto normal entre el número anterior y este
                     const textoIntermedio = mensajeActual.message.substring(posicionUltimoEmoji, entidad.offset);
                     
-                    // Si ya habíamos guardado un número (ej: el 1) y vemos un punto en medio, lo añadimos
                     if (numeroEpisodio !== "" && textoIntermedio.includes('.')) {
                         numeroEpisodio += ".";
                     }
                     
-                    // Guardamos el número que acabamos de traducir
                     numeroEpisodio += EMOJI_A_NUMERO[emojiId];
                 }
             }
-            // Actualizamos la posición para el siguiente ciclo
             posicionUltimoEmoji = entidad.offset + entidad.length;
         }
     }
@@ -273,7 +272,7 @@ function cargarVideoEnReproductor() {
     // Actualizamos la interfaz
     document.getElementById("video-title").textContent = tituloVideo;
     
-    // Controlar si las flechas deben encenderse o apagarse
+    // Controlar botones
     document.getElementById("btn-prev").disabled = (indiceActual === 0);
     document.getElementById("btn-next").disabled = (indiceActual === listaDeVideos.length - 1);
     
@@ -283,7 +282,6 @@ function cargarVideoEnReproductor() {
     reproductor.preload = "auto";
     reproductor.play().catch(() => console.log("Play automático bloqueado por el navegador"));
 }
-
 // 4. Lógica de las flechas (Añade esto justo debajo de la función cargarVideoEnReproductor)
 document.getElementById("btn-prev").addEventListener("click", () => {
     if (indiceActual > 0) {
