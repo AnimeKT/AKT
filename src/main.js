@@ -190,7 +190,9 @@ async function buscarVideo(textoBusqueda, topicId = null) {
         
         // Telegram devuelve los resultados del más nuevo al más viejo.
         // Los invertimos para que el Capítulo 1 sea el primero y el Capítulo 2 el siguiente.
-        listaDeVideos.reverse(); 
+        if (topicId !== null) {
+            listaDeVideos.reverse(); 
+        } 
         
         indiceActual = 0; // Empezamos por el primer video
         cargarVideoEnReproductor(); // Llamamos a la nueva función
@@ -303,13 +305,14 @@ function cargarVideoEnReproductor() {
     }
     
     // <--- LÍNEAS NUEVAS AÑADIDAS AQUÍ --->
-    const textoDelEpisodio = numeroEpisodio !== "" ? `Episodio ${numeroEpisodio}` : `Episodio ${indiceActual + 1}`;
-    document.getElementById("current-episode-text").textContent = textoDelEpisodio;
-
-    // MAGIA PARA CAMBIAR EL TÍTULO "Episodios recientes" SEGÚN EL LINK
     const tituloSeccion = document.querySelector(".episodes-title");
     const rutaActual = window.location.pathname.replace(/\//g, ""); 
     const esSubPagina = !isNaN(parseInt(rutaActual, 10)) && rutaActual !== "";
+
+    // CÁLCULO DEL NÚMERO (Se adapta si la lista está invertida o no)
+    const numeroFallback = esSubPagina ? (indiceActual + 1) : (listaDeVideos.length - indiceActual);
+    const textoDelEpisodio = numeroEpisodio !== "" ? `Episodio ${numeroEpisodio}` : `Episodio ${numeroFallback}`;
+    document.getElementById("current-episode-text").textContent = textoDelEpisodio;
 
     if (esSubPagina) {
         // Formato de dos líneas para cuando miras un video específico
@@ -782,7 +785,12 @@ function renderizarGridCapitulos() {
         }
 
         // Variable que guarda el número final del botón
-        const textoNumero = numeroEpisodio !== "" ? numeroEpisodio : (index + 1);
+        const rutaLimpiaGrid = window.location.pathname.replace(/\//g, ""); 
+        const esSubPaginaGrid = !isNaN(parseInt(rutaLimpiaGrid, 10)) && rutaLimpiaGrid !== "";
+        const numeroFallbackGrid = esSubPaginaGrid ? (index + 1) : (listaDeVideos.length - index);
+
+        // Variable que guarda el número final del botón
+        const textoNumero = numeroEpisodio !== "" ? numeroEpisodio : numeroFallbackGrid;
         // --- FIN DE LA MAGIA ---
 
         // --- INICIO DE LA LIMPIEZA EXTREMA Y CREACIÓN DEL GLOBITO ---
