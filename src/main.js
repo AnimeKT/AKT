@@ -218,7 +218,7 @@ function cargarVideoEnReproductor() {
             '𝟱': '5', '𝟲': '6', '𝟳': '7', '𝟴': '8', '𝟵': '9'
         };
         // Reemplazamos cualquier número especial que encuentre en el texto
-        let textoNormalizado = textoMensaje.replace(/[𝟬-𝟵]/g, m => mapNumeros[m]);
+        let textoNormalizado = textoMensaje.replace(/[𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵]/gu, m => mapNumeros[m]);
 
         const lineas = textoNormalizado.split('\n');
         
