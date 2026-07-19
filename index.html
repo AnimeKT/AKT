@@ -74,7 +74,8 @@
             overflow: hidden;
             background: #2a2a35; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border: 2px solid transparent;
+            border: 2px solid transparent; /* Ya tenías esto */
+            box-sizing: border-box; /* <--- AÑADE ESTA LÍNEA AQUÍ */
             transition: border-color 0.2s;
         }
 
