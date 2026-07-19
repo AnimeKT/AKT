@@ -53,9 +53,13 @@
             position: relative; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: flex;
+            /* Mantener tamaño estable mientras carga el video */
             aspect-ratio: 16 / 9;
+            min-height: 360px;
+            max-height: 720px;
+            align-items: center;
         }
-        video { width: 100%; display: block; outline: none; cursor: pointer; }
+        video { width: 100%; height: 100%; display: block; outline: none; cursor: pointer; object-fit: contain; background: #000; }
 
         /* Controles flotantes */
         .custom-controls {
