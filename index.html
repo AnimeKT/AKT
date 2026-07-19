@@ -355,6 +355,13 @@
         }
         .speed-option:hover { background: rgba(255,255,255,0.1); color: var(--primary-color); }
 
+        @media (min-width: 850px) {
+        #episodes-grid {
+        /* Fuerza exactamente 4 columnas del mismo tamaño */
+        grid-template-columns: repeat(4, 1fr) !important; 
+    }
+}
+
         
     </style>
 </head>
