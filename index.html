@@ -430,6 +430,7 @@
         /* Colores de las plataformas */
         .paypal-btn { background-color: #00457C; border: 1px solid #0079C1; }
         .kofi-btn { background-color: #FF5E5B; border: 1px solid #ff7572; }
+        .telegram-btn { background-color: #2AABEE; border: 1px solid #229ED9; }
 
         /* Magia para móviles: Ocultar texto y dejar icono circular */
         @media (max-width: 600px) {
@@ -561,27 +562,36 @@
                 <!-- ID OCULTO PARA QUE EL JAVASCRIPT NO TIRE ERROR -->
                 <span id="current-episode-text" style="display: none;"></span>
 
-                <!-- ⬇️ NUEVOS BOTONES DE DONACIÓN AQUÍ ⬇️ -->
-                <div class="support-buttons">
-                    <!-- Botón PayPal -->
-                    <a href="https://www.paypal.com/paypalme/AnimeKaergsty" target="_blank" class="support-btn paypal-btn">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                            <path d="M7.076 21.337H5.07a.641.641 0 0 1-.633-.74L4.932 3.84a.64.64 0 0 1 .633-.537h7.245c3.21 0 5.143 1.34 5.62 3.992.296 1.637-.1 3.528-1.503 4.908-1.42 1.396-3.52 1.83-5.83 1.83h-1.6c-.31 0-.58.23-.62.536l-1.09 6.223a.64.64 0 0 1-.611.545h-2.106V21.337z"/>
-                        </svg>
-                        <span class="support-text">Donar</span>
-                    </a>
-                    
-                    <!-- Botón Ko-fi -->
-                    <a href="https://ko-fi.com/summary/d8dfa1de-a134-42c0-ad18-1934db877c4c" target="_blank" class="support-btn kofi-btn">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 8h1a4 4 0 1 1 0 8h-1"></path>
-                            <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"></path>
-                            <path d="M9.5 10c-1.3 0-2.3 1-2.3 2.3 0 1.6 2.3 3.7 2.3 3.7s2.3-2.1 2.3-3.7C11.8 11 10.8 10 9.5 10z" fill="currentColor"></path>
-                        </svg>
-                        <span class="support-text">Suscríbete 2$</span>
-                    </a>
-                </div>
-                <!-- ⬆️ FIN NUEVOS BOTONES ⬆️ -->
+                <!-- ⬇️ NUEVOS BOTONES DE DONACIÓN Y TELEGRAM AQUÍ ⬇️ -->
+                    <div class="support-buttons">
+                        
+                        <!-- Botón Telegram -->
+                        <a href="https://t.me/Kaergsty" target="_blank" class="support-btn telegram-btn">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.68c.223-.198-.054-.31-.346-.11l-6.4 4.02-2.76-.86c-.6-.188-.612-.6.126-.89l10.81-4.17c.5-.188.943.11.85.545z"/>
+                            </svg>
+                            <span class="support-text">Grupo</span>
+                        </a>
+
+                        <!-- Botón PayPal -->
+                        <a href="https://www.paypal.com/paypalme/AnimeKaergsty" target="_blank" class="support-btn paypal-btn">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M7.076 21.337H5.07a.641.641 0 0 1-.633-.74L4.932 3.84a.64.64 0 0 1 .633-.537h7.245c3.21 0 5.143 1.34 5.62 3.992.296 1.637-.1 3.528-1.503 4.908-1.42 1.396-3.52 1.83-5.83 1.83h-1.6c-.31 0-.58.23-.62.536l-1.09 6.223a.64.64 0 0 1-.611.545h-2.106V21.337z"/>
+                            </svg>
+                            <span class="support-text">Donar</span>
+                        </a>
+                        
+                        <!-- Botón Ko-fi -->
+                        <a href="https://ko-fi.com/summary/d8dfa1de-a134-42c0-ad18-1934db877c4c" target="_blank" class="support-btn kofi-btn">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 8h1a4 4 0 1 1 0 8h-1"></path>
+                                <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"></path>
+                                <path d="M9.5 10c-1.3 0-2.3 1-2.3 2.3 0 1.6 2.3 3.7 2.3 3.7s2.3-2.1 2.3-3.7C11.8 11 10.8 10 9.5 10z" fill="currentColor"></path>
+                            </svg>
+                            <span class="support-text">Suscríbete 2$</span>
+                        </a>
+                    </div>
+                    <!-- ⬆️ FIN NUEVOS BOTONES ⬆️ -->
 
             </div> 
             <!-- ⬆️ AQUÍ SE CIERRA CORRECTAMENTE EL ENCABEZADO ⬆️ -->
