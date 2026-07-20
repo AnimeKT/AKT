@@ -191,17 +191,26 @@ function cargarContenidoInicial() {
     const ruta = window.location.pathname.replace(/\//g, ""); 
     const topicId = parseInt(ruta, 10);
 
+    // Obtenemos el botón de Inicio que acabamos de crear en el HTML
+    const btnHome = document.getElementById("btn-home");
+
     if (!isNaN(topicId)) {
         console.log(`📂 Abriendo Topic: ${topicId}`);
         buscarVideo("", topicId);
+        
+        // 🟢 Mostrar el botón de Inicio si estamos dentro de un tema (Ej: /1416)
+        if(btnHome) btnHome.style.display = "flex"; 
+        
     } else {
         buscarVideo(""); 
+        
+        // 🔴 Ocultar el botón de Inicio si ya estamos en la página principal (/)
+        if(btnHome) btnHome.style.display = "none";
 
         if (window.location.pathname === '/') {
             // AQUÍ VA TODO EL CÓDIGO DE LOS NOMBRES AL PASAR EL MOUSE
             configurarNombresAnime();
         }
-
     }
 }
 
