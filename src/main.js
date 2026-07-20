@@ -981,3 +981,31 @@ function actualizarCapituloActivo() {
         }
     });
 }
+
+// ==========================================
+// LÓGICA DE OMITIR INTRO Y ENDING
+// ==========================================
+const btnSkipIntro = document.getElementById("btn-skip-intro");
+const btnSkipEnding = document.getElementById("btn-skip-ending");
+
+// Cantidad de segundos a saltar (85s es el estándar seguro para animes)
+const SEGUNDOS_SALTO = 85; 
+
+if (btnSkipIntro) {
+    btnSkipIntro.addEventListener("click", (e) => {
+        e.stopPropagation(); // Evita que se pause el video accidentalmente
+        if (video.duration) {
+            // Sumamos los segundos, asegurándonos de no pasarnos de la duración total
+            video.currentTime = Math.min(video.duration, video.currentTime + SEGUNDOS_SALTO);
+        }
+    });
+}
+
+if (btnSkipEnding) {
+    btnSkipEnding.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (video.duration) {
+            video.currentTime = Math.min(video.duration, video.currentTime + SEGUNDOS_SALTO);
+        }
+    });
+}
