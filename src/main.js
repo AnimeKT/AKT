@@ -206,7 +206,6 @@ function cargarContenidoInicial() {
 }
 
 // 6. Lógica para buscar la lista de videos
-// 6. Lógica para buscar la lista de videos
 async function buscarVideo(textoBusqueda, topicId = null) {
   try {
     const parametrosBusqueda = {
