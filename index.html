@@ -79,6 +79,20 @@
             <div class="video-wrapper" id="video-wrapper">
                 <video id="reproductor"></video>
                 
+                <!-- NUEVOS BOTONES ESTILO CRUNCHYROLL -->
+                <button id="btn-skip-intro" class="skip-btn-crunchy" style="display: none;">
+                    Omitir intro
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                        <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                    </svg>
+                </button>
+                <button id="btn-skip-ending" class="skip-btn-crunchy" style="display: none;">
+                    Omitir ending
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                        <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                    </svg>
+                </button>
+                
                 <div class="custom-controls" id="custom-controls">
                     <div class="progress-wrapper" id="progress-wrapper">
                         <input type="range" class="progress-slider" id="progress-slider" min="0" max="100" step="0.1" value="0">
@@ -103,13 +117,6 @@
                         
                         <div class="spacer"></div>
 
-                        <!-- BOTONES DE SALTO INTELIGENTES (Ocultos por defecto) -->
-                        <button class="control-btn text-btn" id="btn-skip-intro" style="display: none; font-size: 13px; padding: 0 10px; white-space: nowrap; font-weight: bold; color: #4ba3e3;">
-                            Omitir Intro
-                        </button>
-                        <button class="control-btn text-btn" id="btn-skip-ending" style="display: none; font-size: 13px; padding: 0 10px; white-space: nowrap; font-weight: bold; color: #4ba3e3;">
-                            Omitir Ending
-                        </button>
 
                         <div class="speed-container">
                             <button class="control-btn text-btn" id="btn-speed">1x</button>

@@ -409,3 +409,32 @@ video {
     }
     .support-btn svg { width: 18px; height: 18px; }
 }
+
+/* ========================================== */
+/* BOTONES DE SALTO ESTILO CRUNCHYROLL        */
+/* ========================================== */
+.skip-btn-crunchy {
+    position: absolute;
+    bottom: 65px; /* Altura para que flote sobre la barra de progreso */
+    right: 20px;
+    background-color: #fbf6ec; /* Color crema/blanco */
+    color: #000000;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 8px 16px 8px 20px;
+    border: none;
+    border-radius: 50px; /* Forma de pastilla redondeada */
+    cursor: pointer;
+    align-items: center;
+    gap: 4px;
+    z-index: 100;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+/* Efecto al pasar el mouse por encima */
+.skip-btn-crunchy:hover {
+    background-color: #ffffff;
+    transform: scale(1.03);
+}
