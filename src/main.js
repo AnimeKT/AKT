@@ -55,23 +55,23 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// 1. REEMPLAZA ESTO CON TUS DATOS DE my.telegram.org
-const apiId = 37849964; // <- Pon tu API_ID aquí (sin comillas, es un número)
-const apiHash = "274305508ef10ef30b8d6d980c98cb5b"; // <- Pon tu API_HASH aquí (entre comillas)
+// 1. CONFIGURACIÓN DINÁMICA DE API (Para cada usuario)
+let client = null; 
 
-// 2. Revisamos si ya hay una sesión guardada para no pedir código de nuevo
+let apiId = localStorage.getItem("user_api_id") || "";
+let apiHash = localStorage.getItem("user_api_hash") || "";
 const savedSession = localStorage.getItem("telegram_session") || "";
 const stringSession = new StringSession(savedSession);
 
-const client = new TelegramClient(stringSession, apiId, apiHash, {
-  connectionRetries: 5,
-  // Le decimos qué dispositivo es manualmente para evitar el error "os"
-  deviceModel: "AnimeKaergsty Web", 
-  systemVersion: "1.0.0",
-  appVersion: "1.0.0",
-  // ¡VITAL PARA NAVEGADORES! Obliga a usar WebSockets
-  useWSS: true, 
-});
+function inicializarCliente() {
+    client = new TelegramClient(stringSession, parseInt(apiId), apiHash, {
+        connectionRetries: 5,
+        deviceModel: "AnimeKaergsty Web", 
+        systemVersion: "1.0.0",
+        appVersion: "1.0.0",
+        useWSS: true, 
+    });
+}
 
 // 3. Capturamos los elementos de la interfaz (UI)
 const phoneInput = document.getElementById("phone-input");
@@ -94,6 +94,11 @@ const tabQr = document.getElementById("tab-qr");
 const flowPhone = document.getElementById("flow-phone");
 const flowQr = document.getElementById("flow-qr");
 const qrContainer = document.getElementById("qr-container");
+const apiCredentialsStep = document.getElementById("api-credentials-step");
+const loginMethodsContainer = document.getElementById("login-methods-container");
+const inputApiId = document.getElementById("user-api-id");
+const inputApiHash = document.getElementById("user-api-hash");
+const btnSaveApi = document.getElementById("btn-save-api");
 
 tabPhone.addEventListener("click", () => {
     tabPhone.style.backgroundColor = "var(--primary-color)";
@@ -170,22 +175,62 @@ btnSendCode.addEventListener("click", async () => {
   }
 });
 
-// 5. Autologin: Si ya teníamos sesión, nos conectamos en silencio
-if (savedSession) {
-  console.log("Sesión encontrada. Conectando silenciosamente...");
+// 5. Lógica de inicio y comprobación de API
+if (apiId && apiHash) {
+    // Si ya tiene las credenciales guardadas, ocultamos la caja del API
+    if(apiCredentialsStep) apiCredentialsStep.classList.add("hidden");
+    if(loginMethodsContainer) loginMethodsContainer.classList.remove("hidden");
+    
+    inicializarCliente();
+    
+    // Si además tiene sesión, hacemos el autologin silencioso
+    if (savedSession) {
+        console.log("Credenciales y sesión encontradas. Conectando silenciosamente...");
+        loginSection.classList.add("hidden");
+        videoContainer.classList.remove("hidden");
 
-  loginSection.classList.add("hidden");
-  videoContainer.classList.remove("hidden");
-
-  client.connect().then(async () => {
-
-    await obtenerPortadasDelCanal();
-    cargarContenidoInicial();
-
-  }).catch(error => {
-    console.log("Ajustando conexión de Telegram en segundo plano...");
-  });
+        client.connect().then(async () => {
+            await obtenerPortadasDelCanal();
+            cargarContenidoInicial();
+        }).catch(error => {
+            console.log("Ajustando conexión de Telegram en segundo plano...");
+        });
+    }
+} else {
+    // Si NO hay API, ocultamos los métodos de login y mostramos la caja de API
+    if(loginMethodsContainer) loginMethodsContainer.classList.add("hidden");
+    if(apiCredentialsStep) apiCredentialsStep.classList.remove("hidden");
 }
+
+// Acción de guardar el API ID y HASH
+btnSaveApi.addEventListener("click", () => {
+    const enteredId = inputApiId.value.trim();
+    const enteredHash = inputApiHash.value.trim();
+
+    if (!enteredId || !enteredHash) {
+        return alert("Debes ingresar tanto el API ID como el API HASH.");
+    }
+
+    // Guardamos en memoria local
+    apiId = enteredId;
+    apiHash = enteredHash;
+    localStorage.setItem("user_api_id", apiId);
+    localStorage.setItem("user_api_hash", apiHash);
+
+    // Inicializamos el cliente ahora que tenemos los datos
+    inicializarCliente();
+
+    // Hacemos el cambio visual
+    apiCredentialsStep.classList.add("hidden");
+    loginMethodsContainer.classList.remove("hidden");
+    
+    // Si la pestaña QR está activa, lo iniciamos
+    if (tabQr.style.backgroundColor === "var(--primary-color)" || tabQr.style.backgroundColor === "rgb(68, 68, 68)") {
+        if (!flowQr.classList.contains("hidden")) {
+            iniciarLoginQR(); 
+        }
+    }
+});
 
 function cargarContenidoInicial() {
     const ruta = window.location.pathname.replace(/\//g, ""); 
@@ -381,7 +426,7 @@ function cargarVideoEnReproductor() {
         }
     }
 
-    actualizarCapituloActivo();
+    actualizarCapituloActivo(); 
     
     // Actualizamos la interfaz
     document.getElementById("video-title").textContent = tituloVideo;
@@ -721,6 +766,8 @@ if (btnLogout) {
         if (confirmar) {
             // 1. Borramos la llave guardada en el navegador
             localStorage.removeItem("telegram_session");
+            localStorage.removeItem("user_api_id");   // <-- NUEVO
+            localStorage.removeItem("user_api_hash");
             
             // 2. Desconectamos el cliente de Telegram
             await client.disconnect();
