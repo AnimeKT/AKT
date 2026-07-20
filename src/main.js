@@ -191,24 +191,12 @@ function cargarContenidoInicial() {
     const ruta = window.location.pathname.replace(/\//g, ""); 
     const topicId = parseInt(ruta, 10);
 
-    // Obtenemos el botón de Inicio que acabamos de crear en el HTML
-    const btnHome = document.getElementById("btn-home");
-
     if (!isNaN(topicId)) {
         console.log(`📂 Abriendo Topic: ${topicId}`);
         buscarVideo("", topicId);
-        
-        // 🟢 Mostrar el botón de Inicio si estamos dentro de un tema (Ej: /1416)
-        if(btnHome) btnHome.style.display = "flex"; 
-        
     } else {
         buscarVideo(""); 
-        
-        // 🔴 Ocultar el botón de Inicio si ya estamos en la página principal (/)
-        if(btnHome) btnHome.style.display = "none";
-
         if (window.location.pathname === '/') {
-            // AQUÍ VA TODO EL CÓDIGO DE LOS NOMBRES AL PASAR EL MOUSE
             configurarNombresAnime();
         }
     }
@@ -277,8 +265,6 @@ const EMOJI_A_NUMERO = {
     '5217949372704108415': '𝟴',
     '5217907505362907029': '𝟵'
 };
-
-// NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 // NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 function cargarVideoEnReproductor() {
     const mensajeActual = listaDeVideos[indiceActual];
@@ -369,18 +355,30 @@ function cargarVideoEnReproductor() {
     const textoDelEpisodio = numeroEpisodio !== "" ? `Episodio ${numeroEpisodio}` : `Episodio ${numeroFallback}`;
     document.getElementById("current-episode-text").textContent = textoDelEpisodio;
 
-    if (esSubPagina) {
-        // Formato de dos líneas para cuando miras un video específico
-        tituloSeccion.innerHTML = `
-            <span style="font-size: 13px; color: var(--secondary-text-color); font-weight: normal; display: block; margin-bottom: 2px;">Estás viendo</span>
-            <span style="font-size: 15px;">${textoDelEpisodio}</span>
-        `;
-    } else {
-        // Formato de dos líneas para la página principal (/)
-        tituloSeccion.innerHTML = `
-            <span style="font-size: 13px; color: var(--secondary-text-color); font-weight: normal; display: block; margin-bottom: 2px;">Episodios</span>
-            <span style="font-size: 15px;">Recientes</span>
-        `;
+    // 🟢 AQUÍ SE INTEGRA EL NUEVO DISEÑO INTERACTIVO DEL TÍTULO / BOTÓN
+    if (tituloSeccion) {
+        if (esSubPagina) {
+            // SI ES UNA SUBPÁGINA: Toda la frase actúa como botón de regreso con su flecha
+            tituloSeccion.innerHTML = `
+                <a href="/" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 4px 8px; margin-left: -8px; border-radius: 8px; transition: background 0.2s ease; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" title="Volver a la página principal">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" style="color: #4ba3e3;">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 13px; color: var(--secondary-text-color); font-weight: normal; line-height: 1.2;">Estás viendo</span>
+                        <span style="font-size: 15px; color: #ffffff; line-height: 1.2; font-weight: bold;">${textoDelEpisodio}</span>
+                    </div>
+                </a>
+            `;
+        } else {
+            // SI ES LA PÁGINA PRINCIPAL: Texto estático normal sin diseño de botón
+            tituloSeccion.innerHTML = `
+                <div style="display: flex; flex-direction: column; padding: 4px 0;">
+                    <span style="font-size: 13px; color: var(--secondary-text-color); font-weight: normal; line-height: 1.2;">Episodios</span>
+                    <span style="font-size: 15px; color: #ffffff; line-height: 1.2; font-weight: bold;">Recientes</span>
+                </div>
+            `;
+        }
     }
 
     actualizarCapituloActivo();

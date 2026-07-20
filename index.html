@@ -117,35 +117,20 @@
             <!-- ÚNICO ENCABEZADO LIMPIO -->
             <div class="episodes-header" style="display: flex; align-items: center; position: relative; margin-bottom: 25px; min-height: 30px;">
                 
-                <!-- TEXTO PEGADO A LA IZQUIERDA -->
+                <!-- TEXTO PEGADO A LA IZQUIERDA (JS lo convertirá en botón luego) -->
                 <h3 class="episodes-title" style="margin: 0; font-size: 18px; color: #ffffff;">Episodios recientes</h3>
                 
-                <!-- CONTENEDOR CENTRAL: BOTÓN INICIO + LOGO -->
-                <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 15px;">
-                    
-                    <!-- BOTÓN DE INICIO (Se oculta en la página principal mediante JS) -->
-                    <a href="/" id="btn-home" class="support-btn" style="text-decoration: none; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 6px 12px; transition: 0.2s; color: white;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" title="Volver a la página principal">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                            <!-- Ícono de flecha hacia atrás -->
-                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-                        </svg>
-                        <span class="support-text" style="margin-left: 5px; font-size: 13px; font-weight: 600;">Inicio</span>
-                    </a>
-
-                    <!-- LOGO -->
-                    <a href="https://animekt.github.io/ATC/" target="_blank" style="text-decoration: none; font-size: 24px; font-weight: 900; font-family: 'Segoe UI', Arial, sans-serif; display: inline-block; transition: transform 0.2s ease; line-height: 1; white-space: nowrap;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                        <span style="color: #ffffff; text-shadow: -1.5px 0px 0px #00e5ff, 1.5px 0px 0px #ff6600;">Anime</span><span style="color: #4ba3e3; text-shadow: -1.5px 0px 0px #00e5ff, 1.5px 0px 0px #ff6600;">KT</span>
-                    </a>
-                    
-                </div>
+                <!-- LOGO TOTALMENTE CENTRADO -->
+                <a href="https://animekt.github.io/ATC/" target="_blank" style="position: absolute; left: 50%; transform: translateX(-50%); text-decoration: none; font-size: 24px; font-weight: 900; font-family: 'Segoe UI', Arial, sans-serif; display: inline-block; transition: transform 0.2s ease; line-height: 1; white-space: nowrap;" onmouseover="this.style.transform='translateX(-50%) scale(1.05)'" onmouseout="this.style.transform='translateX(-50%) scale(1)'">
+                    <span style="color: #ffffff; text-shadow: -1.5px 0px 0px #00e5ff, 1.5px 0px 0px #ff6600;">Anime</span><span style="color: #4ba3e3; text-shadow: -1.5px 0px 0px #00e5ff, 1.5px 0px 0px #ff6600;">KT</span>
+                </a>
 
                 <!-- ID OCULTO PARA QUE EL JAVASCRIPT NO TIRE ERROR -->
                 <span id="current-episode-text" style="display: none;"></span>
 
-                <!-- ⬇️ NUEVOS BOTONES DE DONACIÓN Y TELEGRAM AQUÍ ⬇️ -->
+                <!-- ⬇️ BOTONES DE DONACIÓN Y TELEGRAM A LA DERECHA ⬇️ -->
                 <div class="support-buttons">
                     
-                    <!-- Botón Telegram -->
                     <a href="https://t.me/Kaergsty" target="_blank" class="support-btn telegram-btn">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                             <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.68c.223-.198-.054-.31-.346-.11l-6.4 4.02-2.76-.86c-.6-.188-.612-.6.126-.89l10.81-4.17c.5-.188.943.11.85.545z"/>
@@ -153,7 +138,6 @@
                         <span class="support-text">Grupo</span>
                     </a>
 
-                    <!-- Botón PayPal -->
                     <a href="https://www.paypal.com/paypalme/AnimeKaergsty" target="_blank" class="support-btn paypal-btn">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                             <path d="M7.076 21.337H5.07a.641.641 0 0 1-.633-.74L4.932 3.84a.64.64 0 0 1 .633-.537h7.245c3.21 0 5.143 1.34 5.62 3.992.296 1.637-.1 3.528-1.503 4.908-1.42 1.396-3.52 1.83-5.83 1.83h-1.6c-.31 0-.58.23-.62.536l-1.09 6.223a.64.64 0 0 1-.611.545h-2.106V21.337z"/>
@@ -161,7 +145,6 @@
                         <span class="support-text">Donar</span>
                     </a>
                     
-                    <!-- Botón Ko-fi -->
                     <a href="https://ko-fi.com/summary/d8dfa1de-a134-42c0-ad18-1934db877c4c" target="_blank" class="support-btn kofi-btn">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M17 8h1a4 4 0 1 1 0 8h-1"></path>
