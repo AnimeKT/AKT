@@ -177,7 +177,7 @@ btnSendCode.addEventListener("click", async () => {
 
 // 5. Lógica de inicio y comprobación de API
 if (apiId && apiHash) {
-    // Si ya tiene las credenciales guardadas, ocultamos la caja del API
+    // Si ya tiene las credenciales, ocultamos la caja del API y mostramos los métodos
     if(apiCredentialsStep) apiCredentialsStep.classList.add("hidden");
     if(loginMethodsContainer) loginMethodsContainer.classList.remove("hidden");
     
@@ -186,18 +186,32 @@ if (apiId && apiHash) {
     // Si además tiene sesión, hacemos el autologin silencioso
     if (savedSession) {
         console.log("Credenciales y sesión encontradas. Conectando silenciosamente...");
-        loginSection.classList.add("hidden");
-        videoContainer.classList.remove("hidden");
+        
+        // ¡NUEVO!: Ocultamos el login y mostramos el reproductor forzosamente
+        if(loginSection) loginSection.classList.add("hidden");
+        if(videoContainer) videoContainer.classList.remove("hidden");
 
         client.connect().then(async () => {
             await obtenerPortadasDelCanal();
             cargarContenidoInicial();
         }).catch(error => {
-            console.log("Ajustando conexión de Telegram en segundo plano...");
+            console.log("Ajustando conexión de Telegram en segundo plano...", error);
+            // Si falla la conexión, lo devolvemos a la pantalla de login
+            if(loginSection) loginSection.classList.remove("hidden");
+            if(videoContainer) videoContainer.classList.add("hidden");
         });
+    } else {
+        // Tiene API pero NO ha iniciado sesión. Mostramos el Login, ocultamos el Video.
+        console.log("Esperando que el usuario inicie sesión...");
+        if(loginSection) loginSection.classList.remove("hidden");
+        if(videoContainer) videoContainer.classList.add("hidden");
     }
 } else {
-    // Si NO hay API, ocultamos los métodos de login y mostramos la caja de API
+    // Si NO hay API, ocultamos el Video, mostramos el Login y pedimos la API
+    console.log("No hay API configurada. Pidiendo credenciales...");
+    if(loginSection) loginSection.classList.remove("hidden");
+    if(videoContainer) videoContainer.classList.add("hidden");
+    
     if(loginMethodsContainer) loginMethodsContainer.classList.add("hidden");
     if(apiCredentialsStep) apiCredentialsStep.classList.remove("hidden");
 }
@@ -241,9 +255,7 @@ function cargarContenidoInicial() {
         buscarVideo("", topicId);
     } else {
         buscarVideo(""); 
-        if (window.location.pathname === '/') {
-            configurarNombresAnime();
-        }
+        // Eliminamos el llamado a configurarNombresAnime() porque no existe y rompía el código
     }
 }
 
