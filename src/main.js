@@ -792,6 +792,35 @@ async function iniciarLoginQR() {
     }
 }
 
+// Función para descargar de Telegram guardando copia en la memoria del navegador
+async function obtenerMediaConCache(cacheKey, media, opciones = {}) {
+    try {
+        const cache = await caches.open("anime-media-cache-v1");
+        const cachedResponse = await cache.match(`https://cache.local/${cacheKey}`);
+        
+        // 1. Si ya está guardada en la caché local, devolverla AL INSTANTE
+        if (cachedResponse) {
+            const arrayBuffer = await cachedResponse.arrayBuffer();
+            return Buffer.from(arrayBuffer);
+        }
+
+        // 2. Si no está en caché, descargar de Telegram
+        const buffer = await client.downloadMedia(media, opciones);
+        
+        // 3. Guardar una copia en la caché para la próxima vez
+        if (buffer) {
+            const response = new Response(buffer);
+            await cache.put(`https://cache.local/${cacheKey}`, response);
+        }
+        
+        return buffer;
+    } catch (error) {
+        console.error("Error gestionando caché de media:", error);
+        // Si la caché falla por alguna razón, intenta descargar directo
+        return await client.downloadMedia(media, opciones);
+    }
+}
+
 // ==========================================
 // RENDERIZADO DE LA LISTA DE CAPÍTULOS
 // ==========================================
@@ -909,7 +938,9 @@ function renderizarGridCapitulos() {
                 // DESCARGA PARA PÁGINA PRINCIPAL (GIFS/FOTOS)
                 // ==========================================
                 const esGif = mediaAsignada.className === 'MessageMediaDocument';
-                client.downloadMedia(mediaAsignada).then(buffer => {
+                const claveCache = `portada-${nombreVideoLimpio}`;
+
+                obtenerMediaConCache(claveCache, mediaAsignada).then(buffer => {
                     if (buffer) {
                         const wrapper = document.getElementById(`wrapper-${mediaId}`);
                         if (!wrapper) return;
@@ -936,9 +967,9 @@ function renderizarGridCapitulos() {
                 // ==========================================
                 // DESCARGA PARA ENLACES CON NÚMEROS (MINIATURA DEL VIDEO)
                 // ==========================================
-                // MAGIA: El parámetro { thumb: 1 } le dice a Telegram que descargue 
-                // solo el fotograma (miniatura) del video en lugar del video pesado de 1GB.
-                client.downloadMedia(mediaAsignada, { thumb: 1 }).then(buffer => {
+                const claveCache = `thumb-${mensajeActual.id}`;
+
+                obtenerMediaConCache(claveCache, mediaAsignada, { thumb: 1 }).then(buffer => {
                     if (buffer) {
                         const wrapper = document.getElementById(`wrapper-${mediaId}`);
                         if (!wrapper) return;
@@ -947,7 +978,6 @@ function renderizarGridCapitulos() {
                             <span class="episode-badge">Episodio ${textoNumero}</span>
                             <span class="time-badge">Reciente</span>
                         `;
-                        // Las miniaturas de Telegram siempre son en formato imagen JPEG
                         const blob = new Blob([buffer], { type: 'image/jpeg' });
                         const url = URL.createObjectURL(blob);
                         wrapper.innerHTML += `<img src="${url}" class="episode-card-img" style="object-fit: cover;">`;
