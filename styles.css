@@ -411,30 +411,47 @@ video {
 }
 
 /* ========================================== */
-/* BOTONES DE SALTO ESTILO CRUNCHYROLL        */
+/* BOTONES DE SALTO (EFECTO FANTASMA)         */
 /* ========================================== */
-.skip-btn-crunchy {
+.skip-btn-anime {
     position: absolute;
-    bottom: 65px; /* Altura para que flote sobre la barra de progreso */
+    bottom: 65px;
     right: 20px;
-    background-color: #fbf6ec; /* Color crema/blanco */
+    background-color: #f6ebd8; /* Color cremita de tu imagen */
     color: #000000;
     font-family: 'Segoe UI', Arial, sans-serif;
-    font-size: 15px;
+    font-size: 14px; /* Letra más pequeña */
     font-weight: 700;
-    padding: 8px 16px 8px 20px;
+    padding: 6px 14px; /* Botón más compacto */
     border: none;
-    border-radius: 50px; /* Forma de pastilla redondeada */
+    border-radius: 50px;
     cursor: pointer;
+    
+    /* Centrado perfecto de texto e icono */
+    display: flex; 
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
     z-index: 100;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
-    transition: transform 0.15s ease, background-color 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    
+    /* ESTADO INICIAL FANTASMA (Oculto) */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(10px); /* Nace un poco desde abajo */
+    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease;
 }
 
-/* Efecto al pasar el mouse por encima */
-.skip-btn-crunchy:hover {
+/* CLASE QUE ACTIVA EL JS PARA MOSTRARLO */
+.skip-btn-anime.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.skip-btn-anime:hover {
     background-color: #ffffff;
-    transform: scale(1.03);
+    transform: translateY(0) scale(1.05);
 }

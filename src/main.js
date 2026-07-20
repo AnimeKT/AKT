@@ -301,6 +301,8 @@ const EMOJI_A_NUMERO = {
 // ==========================================
 let tiempoIntroSegundos = 0;
 let tiempoEndingSegundos = 0;
+let introSaltada = false;
+let endingSaltado = false;
 
 // Convierte formato "01:30" a 90 segundos
 function tiempoASegundos(tiempoStr) {
@@ -324,26 +326,26 @@ function cargarVideoEnReproductor() {
     const btnSkipEnding = document.getElementById("btn-skip-ending");
     
     // Ocultar botones y resetear tiempos al cambiar de video
-    if(btnSkipIntro) btnSkipIntro.style.display = "none";
-    if(btnSkipEnding) btnSkipEnding.style.display = "none";
+    if(btnSkipIntro) btnSkipIntro.classList.remove("show");
+    if(btnSkipEnding) btnSkipEnding.classList.remove("show");
     tiempoIntroSegundos = 0;
     tiempoEndingSegundos = 0;
+    introSaltada = false;
+    endingSaltado = false;
 
     if (mensajeActual.message && mensajeActual.message !== "") {
         const textoOriginal = mensajeActual.message;
         
-        // Buscar Intro (Acepta formatos como "Intro: 01:30" o "OP: 01:30")
+        // Buscar Intro
         const matchIntro = textoOriginal.match(/(?:intro|op|opening):\s*(\d{1,2}:\d{2})/i);
         if (matchIntro && matchIntro[1]) {
             tiempoIntroSegundos = tiempoASegundos(matchIntro[1]);
-            if(btnSkipIntro) btnSkipIntro.style.display = ""; // Vuelve a ser visible
         }
 
-        // Buscar Ending (Acepta formatos como "Ending: 22:30" o "ED: 22:30")
+        // Buscar Ending
         const matchEnding = textoOriginal.match(/(?:ending|ed):\s*(\d{1,2}:\d{2})/i);
         if (matchEnding && matchEnding[1]) {
             tiempoEndingSegundos = tiempoASegundos(matchEnding[1]);
-            if(btnSkipEnding) btnSkipEnding.style.display = ""; // Vuelve a ser visible
         }
         // Usamos el texto original (sin trim) para mantener offsets correctos
         let textoBruto = mensajeActual.message;
@@ -570,9 +572,10 @@ const btnSkipEndingPlayer = document.getElementById("btn-skip-ending");
 if (btnSkipIntroPlayer) {
     btnSkipIntroPlayer.addEventListener("click", (e) => {
         e.stopPropagation();
-        // A diferencia del método 1 (que sumaba segundos), este te lleva al SEGUNDO EXACTO
         if (video.duration && tiempoIntroSegundos > 0) {
             video.currentTime = tiempoIntroSegundos;
+            introSaltada = true; // Avisa que ya se saltó
+            btnSkipIntroPlayer.classList.remove("show"); // Lo desvanece
         }
     });
 }
@@ -581,7 +584,10 @@ if (btnSkipEndingPlayer) {
     btnSkipEndingPlayer.addEventListener("click", (e) => {
         e.stopPropagation();
         if (video.duration && tiempoEndingSegundos > 0) {
-            video.currentTime = tiempoEndingSegundos;
+            // Saltamos 85 segundos hacia adelante (el estándar de un ending de anime)
+            video.currentTime = Math.min(video.duration, tiempoEndingSegundos + 85);
+            endingSaltado = true; // Avisa que ya se saltó
+            btnSkipEndingPlayer.classList.remove("show"); // Lo desvanece
         }
     });
 }
@@ -622,6 +628,25 @@ video.addEventListener("timeupdate", () => {
         progressSlider.style.background = `linear-gradient(to right, var(--primary-color) ${percent}%, rgba(255, 255, 255, 0.3) ${percent}%)`;
     }
     timeCurrent.textContent = formatTime(video.currentTime);
+
+    // ==========================================
+    // MAGIA FANTASMA: MOSTRAR/OCULTAR BOTONES
+    // ==========================================
+    if (video.duration) {
+        // Mostrar Intro: Desde el segundo 0 hasta el límite de la intro, si no lo ha pulsado aún
+        if (tiempoIntroSegundos > 0 && !introSaltada && video.currentTime < tiempoIntroSegundos) {
+            btnSkipIntroPlayer.classList.add("show");
+        } else if (btnSkipIntroPlayer) {
+            btnSkipIntroPlayer.classList.remove("show");
+        }
+
+        // Mostrar Ending: Aparece exactamente cuando el video llega al tiempo del ending
+        if (tiempoEndingSegundos > 0 && !endingSaltado && video.currentTime >= tiempoEndingSegundos) {
+            btnSkipEndingPlayer.classList.add("show");
+        } else if (btnSkipEndingPlayer) {
+            btnSkipEndingPlayer.classList.remove("show");
+        }
+    }
 });
 
 // ¡MANTENEMOS ESTO! Mostrar tiempo total cuando el video carga
