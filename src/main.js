@@ -295,21 +295,6 @@ const EMOJI_A_NUMERO = {
     '5217949372704108415': '𝟴',
     '5217907505362907029': '𝟵'
 };
-
-// ==========================================
-// VARIABLES Y LÓGICA DE TIEMPOS (INTRO/ENDING)
-// ==========================================
-let tiempoIntroSegundos = 0;
-let tiempoEndingSegundos = 0;
-let introSaltada = false;
-let endingSaltado = false;
-
-// Convierte formato "01:30" a 90 segundos
-function tiempoASegundos(tiempoStr) {
-    const partes = tiempoStr.split(':');
-    return (parseInt(partes[0], 10) * 60) + parseInt(partes[1], 10);
-}
-
 // NUEVA FUNCIÓN: Encargada de poner el video en pantalla y limpiar el título
 function cargarVideoEnReproductor() {
     const mensajeActual = listaDeVideos[indiceActual];
@@ -321,32 +306,8 @@ function cargarVideoEnReproductor() {
     let tituloVideo = "Video sin descripción";
     let numeroEpisodio = "";
     
-    // --- NUEVA LÓGICA DE LECTURA DE TIEMPOS ---
-    const btnSkipIntro = document.getElementById("btn-skip-intro");
-    const btnSkipEnding = document.getElementById("btn-skip-ending");
-    
-    // Ocultar botones y resetear tiempos al cambiar de video
-    if(btnSkipIntro) btnSkipIntro.classList.remove("show");
-    if(btnSkipEnding) btnSkipEnding.classList.remove("show");
-    tiempoIntroSegundos = 0;
-    tiempoEndingSegundos = 0;
-    introSaltada = false;
-    endingSaltado = false;
-
+    // 1. Extraer y limpiar el texto base
     if (mensajeActual.message && mensajeActual.message !== "") {
-        const textoOriginal = mensajeActual.message;
-        
-        // Buscar Intro
-        const matchIntro = textoOriginal.match(/(?:intro|op|opening):\s*(\d{1,2}:\d{2})/i);
-        if (matchIntro && matchIntro[1]) {
-            tiempoIntroSegundos = tiempoASegundos(matchIntro[1]);
-        }
-
-        // Buscar Ending
-        const matchEnding = textoOriginal.match(/(?:ending|ed):\s*(\d{1,2}:\d{2})/i);
-        if (matchEnding && matchEnding[1]) {
-            tiempoEndingSegundos = tiempoASegundos(matchEnding[1]);
-        }
         // Usamos el texto original (sin trim) para mantener offsets correctos
         let textoBruto = mensajeActual.message;
 
@@ -563,35 +524,6 @@ const volumeSlider = document.getElementById("volume-slider");
 const btnFullscreen = document.getElementById("btn-fullscreen");
 const videoWrapper = document.getElementById("video-wrapper");
 
-// ==========================================
-// ACCIÓN DE LOS BOTONES OMITIR INTRO/ENDING
-// ==========================================
-const btnSkipIntroPlayer = document.getElementById("btn-skip-intro");
-const btnSkipEndingPlayer = document.getElementById("btn-skip-ending");
-
-if (btnSkipIntroPlayer) {
-    btnSkipIntroPlayer.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (video.duration && tiempoIntroSegundos > 0) {
-            video.currentTime = tiempoIntroSegundos;
-            introSaltada = true; // Avisa que ya se saltó
-            btnSkipIntroPlayer.classList.remove("show"); // Lo desvanece
-        }
-    });
-}
-
-if (btnSkipEndingPlayer) {
-    btnSkipEndingPlayer.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (video.duration && tiempoEndingSegundos > 0) {
-            // Saltamos 85 segundos hacia adelante (el estándar de un ending de anime)
-            video.currentTime = Math.min(video.duration, tiempoEndingSegundos + 85);
-            endingSaltado = true; // Avisa que ya se saltó
-            btnSkipEndingPlayer.classList.remove("show"); // Lo desvanece
-        }
-    });
-}
-
 // Formatear segundos a minutos (Ej: 03:10)
 function formatTime(seconds) {
     if (isNaN(seconds)) return "0:00";
@@ -628,25 +560,6 @@ video.addEventListener("timeupdate", () => {
         progressSlider.style.background = `linear-gradient(to right, var(--primary-color) ${percent}%, rgba(255, 255, 255, 0.3) ${percent}%)`;
     }
     timeCurrent.textContent = formatTime(video.currentTime);
-
-    // ==========================================
-    // MAGIA FANTASMA: MOSTRAR/OCULTAR BOTONES
-    // ==========================================
-    if (video.duration) {
-        // Mostrar Intro: Desde el segundo 0 hasta el límite de la intro, si no lo ha pulsado aún
-        if (tiempoIntroSegundos > 0 && !introSaltada && video.currentTime < tiempoIntroSegundos) {
-            btnSkipIntroPlayer.classList.add("show");
-        } else if (btnSkipIntroPlayer) {
-            btnSkipIntroPlayer.classList.remove("show");
-        }
-
-        // Mostrar Ending: Aparece exactamente cuando el video llega al tiempo del ending
-        if (tiempoEndingSegundos > 0 && !endingSaltado && video.currentTime >= tiempoEndingSegundos) {
-            btnSkipEndingPlayer.classList.add("show");
-        } else if (btnSkipEndingPlayer) {
-            btnSkipEndingPlayer.classList.remove("show");
-        }
-    }
 });
 
 // ¡MANTENEMOS ESTO! Mostrar tiempo total cuando el video carga
@@ -1068,4 +981,3 @@ function actualizarCapituloActivo() {
         }
     });
 }
-
