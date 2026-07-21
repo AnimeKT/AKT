@@ -1022,17 +1022,19 @@ if (esDispositivoMovil) {
             if (toqueX < tercio) {
                 // ZONA IZQUIERDA: Retroceder 10 segundos
                 video.currentTime = Math.max(0, video.currentTime - 10);
-                video.play(); // <-- NUEVO: Fuerza a que el video siga corriendo
+                video.play();
             } else if (toqueX > tercio * 2) {
                 // ZONA DERECHA: Adelantar 10 segundos
                 video.currentTime = Math.min(video.duration || 0, video.currentTime + 10);
-                video.play(); // <-- NUEVO: Fuerza a que el video siga corriendo
+                video.play();
             } else {
                 // ZONA CENTRAL: Pantalla Completa
                 if (!document.fullscreenElement) {
                     videoWrapper.requestFullscreen().catch(err => console.error(err));
+                    video.play(); // <-- NUEVO: Evita que se pause al ENTRAR a pantalla completa
                 } else {
                     document.exitFullscreen();
+                    video.play(); // <-- NUEVO: Evita que se pause al SALIR de pantalla completa
                 }
             }
         }
