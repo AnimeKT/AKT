@@ -1022,9 +1022,11 @@ if (esDispositivoMovil) {
             if (toqueX < tercio) {
                 // ZONA IZQUIERDA: Retroceder 10 segundos
                 video.currentTime = Math.max(0, video.currentTime - 10);
+                video.play(); // <-- NUEVO: Fuerza a que el video siga corriendo
             } else if (toqueX > tercio * 2) {
                 // ZONA DERECHA: Adelantar 10 segundos
                 video.currentTime = Math.min(video.duration || 0, video.currentTime + 10);
+                video.play(); // <-- NUEVO: Fuerza a que el video siga corriendo
             } else {
                 // ZONA CENTRAL: Pantalla Completa
                 if (!document.fullscreenElement) {
