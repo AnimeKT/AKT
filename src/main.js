@@ -662,20 +662,6 @@ videoWrapper.addEventListener('touchstart', (e) => {
     ultimoToque = tiempoActual;
 });
 
-// ==========================================
-// NUEVO: SINCRONIZAR VOLUMEN DEL SISTEMA CON TU BARRA
-// ==========================================
-video.addEventListener('volumechange', () => {
-    // Obtenemos el volumen real del video (que acaba de cambiar por el botón físico)
-    const valorReal = video.muted ? 0 : video.volume;
-    
-    // 1. Movemos la bolita de tu slider a la posición correcta
-    volumeSlider.value = valorReal;
-    
-    // 2. Pintamos la barra de color lila exactamente hasta donde esté el volumen
-    volumeSlider.style.background = `linear-gradient(to right, var(--primary-color) ${valorReal * 100}%, rgba(255, 255, 255, 0.3) ${valorReal * 100}%)`;
-});
-
 // Configuración de Velocidad
 const btnSpeed = document.getElementById("btn-speed");
 const speedMenu = document.getElementById("speed-menu");
