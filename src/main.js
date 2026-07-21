@@ -983,21 +983,28 @@ function actualizarCapituloActivo() {
 }
 
 // ==========================================
-// DOBLE TAP: ADELANTAR (DER), RETROCEDER (IZQ), FULLSCREEN (CENTRO)
+// LÓGICA EXCLUSIVA PARA MÓVILES (Doble Tap y Ocultar Volumen)
 // ==========================================
 const esDispositivoMovil = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 if (esDispositivoMovil) {
+    // 1. Ocultar la barra de volumen (los usuarios usarán botones físicos)
+    const contenedorVolumen = document.querySelector(".volume-container");
+    if (contenedorVolumen) {
+        contenedorVolumen.style.display = "none";
+    }
+
+    // 2. Lógica del Doble Tap (Retroceder, Adelantar, Fullscreen)
     let tiempoUltimoToque = 0;
 
     videoWrapper.addEventListener('touchstart', (e) => {
-        // 1. Evitar que el doble tap interfiera con los controles (volumen, play, barras)
+        // Evitar que el doble tap interfiera con los controles 
         const esControl = e.target.closest('button, input, a') || 
                           e.target.id.includes('slider') || 
                           e.target.id.includes('btn') || 
                           e.target.id.includes('progress');
                           
-        if (esControl) return; // Si se tocó un control, no hacemos la lógica del doble tap
+        if (esControl) return; 
 
         const tiempoActual = new Date().getTime();
         const diferenciaTiempo = tiempoActual - tiempoUltimoToque;
@@ -1009,17 +1016,17 @@ if (esDispositivoMovil) {
             const toqueX = e.changedTouches[0].clientX;
             const anchoPantalla = window.innerWidth;
             
-            // 2. Dividimos la pantalla en 3 tercios
+            // Dividimos la pantalla en 3 tercios
             const tercio = anchoPantalla / 3;
 
             if (toqueX < tercio) {
-                // ZONA IZQUIERDA (0% al 33%): Retroceder 10 segundos
+                // ZONA IZQUIERDA: Retroceder 10 segundos
                 video.currentTime = Math.max(0, video.currentTime - 10);
             } else if (toqueX > tercio * 2) {
-                // ZONA DERECHA (66% al 100%): Adelantar 10 segundos
+                // ZONA DERECHA: Adelantar 10 segundos
                 video.currentTime = Math.min(video.duration || 0, video.currentTime + 10);
             } else {
-                // ZONA CENTRAL (33% al 66%): Pantalla Completa
+                // ZONA CENTRAL: Pantalla Completa
                 if (!document.fullscreenElement) {
                     videoWrapper.requestFullscreen().catch(err => console.error(err));
                 } else {
