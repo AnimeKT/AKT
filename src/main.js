@@ -994,7 +994,13 @@ if (esDispositivoMovil) {
         contenedorVolumen.style.display = "none";
     }
 
-    // 2. Lógica del Doble Tap (Retroceder, Adelantar, Fullscreen)
+    // 2. NUEVO: Ocultar las flechas de navegación lateral en móviles
+    const btnPrev = document.getElementById("btn-prev");
+    const btnNext = document.getElementById("btn-next");
+    if (btnPrev) btnPrev.style.display = "none";
+    if (btnNext) btnNext.style.display = "none";
+
+    // 3. Lógica del Doble Tap (Retroceder, Adelantar, Fullscreen)
     let tiempoUltimoToque = 0;
 
     videoWrapper.addEventListener('touchstart', (e) => {
@@ -1031,10 +1037,10 @@ if (esDispositivoMovil) {
                 // ZONA CENTRAL: Pantalla Completa
                 if (!document.fullscreenElement) {
                     videoWrapper.requestFullscreen().catch(err => console.error(err));
-                    video.play(); // <-- NUEVO: Evita que se pause al ENTRAR a pantalla completa
+                    video.play(); 
                 } else {
                     document.exitFullscreen();
-                    video.play(); // <-- NUEVO: Evita que se pause al SALIR de pantalla completa
+                    video.play(); 
                 }
             }
         }
