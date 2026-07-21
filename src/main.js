@@ -639,6 +639,43 @@ btnFullscreen.addEventListener("click", () => {
     }
 });
 
+// ==========================================
+// NUEVO: DOBLE TAP PARA PANTALLA COMPLETA (MÓVILES)
+// ==========================================
+let ultimoToque = 0;
+videoWrapper.addEventListener('touchstart', (e) => {
+    const tiempoActual = new Date().getTime();
+    const longitudToque = tiempoActual - ultimoToque;
+    
+    // Si el tiempo entre toques es menor a 300ms, lo detectamos como doble tap
+    if (longitudToque < 300 && longitudToque > 0) {
+        // Evitamos que el navegador haga "zoom" por accidente
+        e.preventDefault(); 
+        
+        // Reutilizamos tu lógica de Pantalla Completa
+        if (!document.fullscreenElement) {
+            videoWrapper.requestFullscreen().catch(err => console.error(err));
+        } else {
+            document.exitFullscreen();
+        }
+    }
+    ultimoToque = tiempoActual;
+});
+
+// ==========================================
+// NUEVO: SINCRONIZAR VOLUMEN DEL SISTEMA CON TU BARRA
+// ==========================================
+video.addEventListener('volumechange', () => {
+    // Obtenemos el volumen real del video (que acaba de cambiar por el botón físico)
+    const valorReal = video.muted ? 0 : video.volume;
+    
+    // 1. Movemos la bolita de tu slider a la posición correcta
+    volumeSlider.value = valorReal;
+    
+    // 2. Pintamos la barra de color lila exactamente hasta donde esté el volumen
+    volumeSlider.style.background = `linear-gradient(to right, var(--primary-color) ${valorReal * 100}%, rgba(255, 255, 255, 0.3) ${valorReal * 100}%)`;
+});
+
 // Configuración de Velocidad
 const btnSpeed = document.getElementById("btn-speed");
 const speedMenu = document.getElementById("speed-menu");
