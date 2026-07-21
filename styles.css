@@ -178,6 +178,7 @@ video {
     display: block;
     object-fit: contain;
     background: #000;
+    touch-action: manipulation;
 }
 
 /* Controles flotantes */

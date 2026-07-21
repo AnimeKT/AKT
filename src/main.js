@@ -1013,8 +1013,30 @@ function actualizarCapituloActivo() {
 const esDispositivoMovil = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 if (esDispositivoMovil) {
-    const contenedorVolumen = document.querySelector(".volume-container");
-    if (contenedorVolumen) {
-        contenedorVolumen.style.display = "none";
-    }
+    let ultimoToque = 0;
+
+    // Asumiendo que la variable de tu reproductor se llama 'video'
+    video.addEventListener("click", function (e) {
+        const tiempoActual = new Date().getTime();
+        const tiempoDiferencia = tiempoActual - ultimoToque;
+
+        // Si la diferencia entre toques es menor a 300 milisegundos, se considera doble toque
+        if (tiempoDiferencia < 300 && tiempoDiferencia > 0) {
+            
+            // Obtener la posición horizontal del toque
+            const toqueX = e.clientX;
+            // Calcular la mitad de la pantalla
+            const mitadPantalla = window.innerWidth / 2;
+
+            if (toqueX > mitadPantalla) {
+                // Doble toque en la mitad derecha: adelantar 10 segundos
+                video.currentTime += 10;
+            } else {
+                // Doble toque en la mitad izquierda: retroceder 10 segundos
+                video.currentTime -= 10;
+            }
+        }
+
+        ultimoToque = tiempoActual;
+    });
 }
