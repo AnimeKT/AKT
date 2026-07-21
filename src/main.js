@@ -983,35 +983,37 @@ function actualizarCapituloActivo() {
 }
 
 // ==========================================
-// DOBLE TAP PARA ADELANTAR/RETROCEDER (SOLO MÓVILES)
+// DETECCIÓN DE MÓVILES PARA OCULTAR VOLUMEN
 // ==========================================
+// Los sistemas operativos móviles bloquean la sincronización del volumen web.
+// Si es un dispositivo móvil, ocultamos la barra para evitar confusiones.
 const esDispositivoMovil = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 if (esDispositivoMovil) {
-    let tiempoUltimoToque = 0;
+    let ultimoToque = 0;
 
-    videoWrapper.addEventListener('touchstart', (e) => {
+    // Asumiendo que la variable de tu reproductor se llama 'video'
+    video.addEventListener("click", function (e) {
         const tiempoActual = new Date().getTime();
-        const diferenciaTiempo = tiempoActual - tiempoUltimoToque;
+        const tiempoDiferencia = tiempoActual - ultimoToque;
 
-        // Si la diferencia es menor a 300ms, es un doble toque
-        if (diferenciaTiempo < 300 && diferenciaTiempo > 0) {
+        // Si la diferencia entre toques es menor a 300 milisegundos, se considera doble toque
+        if (tiempoDiferencia < 300 && tiempoDiferencia > 0) {
             
-            // Evitamos que el navegador haga zoom nativo
-            e.preventDefault(); 
-            
-            // En móviles, extraemos la posición exacta del dedo en la pantalla
-            const toqueX = e.changedTouches[0].clientX;
+            // Obtener la posición horizontal del toque
+            const toqueX = e.clientX;
+            // Calcular la mitad de la pantalla
             const mitadPantalla = window.innerWidth / 2;
 
             if (toqueX > mitadPantalla) {
-                // Mitad derecha: Adelantar 10 segundos, asegurando no exceder la duración del video
-                video.currentTime = Math.min(video.duration || 0, video.currentTime + 10);
+                // Doble toque en la mitad derecha: adelantar 10 segundos
+                video.currentTime += 10;
             } else {
-                // Mitad izquierda: Retroceder 10 segundos, asegurando no bajar de 0
-                video.currentTime = Math.max(0, video.currentTime - 10);
+                // Doble toque en la mitad izquierda: retroceder 10 segundos
+                video.currentTime -= 10;
             }
         }
-        tiempoUltimoToque = tiempoActual;
-    }, { passive: false });
+
+        ultimoToque = tiempoActual;
+    });
 }
