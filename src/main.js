@@ -639,29 +639,6 @@ btnFullscreen.addEventListener("click", () => {
     }
 });
 
-// ==========================================
-// NUEVO: DOBLE TAP PARA PANTALLA COMPLETA (MÓVILES)
-// ==========================================
-let ultimoToque = 0;
-videoWrapper.addEventListener('touchstart', (e) => {
-    const tiempoActual = new Date().getTime();
-    const longitudToque = tiempoActual - ultimoToque;
-    
-    // Si el tiempo entre toques es menor a 300ms, lo detectamos como doble tap
-    if (longitudToque < 300 && longitudToque > 0) {
-        // Evitamos que el navegador haga "zoom" por accidente
-        e.preventDefault(); 
-        
-        // Reutilizamos tu lógica de Pantalla Completa
-        if (!document.fullscreenElement) {
-            videoWrapper.requestFullscreen().catch(err => console.error(err));
-        } else {
-            document.exitFullscreen();
-        }
-    }
-    ultimoToque = tiempoActual;
-});
-
 // Configuración de Velocidad
 const btnSpeed = document.getElementById("btn-speed");
 const speedMenu = document.getElementById("speed-menu");
