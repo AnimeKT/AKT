@@ -1004,3 +1004,17 @@ function actualizarCapituloActivo() {
         }
     });
 }
+
+// ==========================================
+// DETECCIÓN DE MÓVILES PARA OCULTAR VOLUMEN
+// ==========================================
+// Los sistemas operativos móviles bloquean la sincronización del volumen web.
+// Si es un dispositivo móvil, ocultamos la barra para evitar confusiones.
+const esDispositivoMovil = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+if (esDispositivoMovil) {
+    const contenedorVolumen = document.querySelector(".volume-container");
+    if (contenedorVolumen) {
+        contenedorVolumen.style.display = "none";
+    }
+}
