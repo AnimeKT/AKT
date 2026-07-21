@@ -983,37 +983,50 @@ function actualizarCapituloActivo() {
 }
 
 // ==========================================
-// DETECCIÓN DE MÓVILES PARA OCULTAR VOLUMEN
+// DOBLE TAP: ADELANTAR (DER), RETROCEDER (IZQ), FULLSCREEN (CENTRO)
 // ==========================================
-// Los sistemas operativos móviles bloquean la sincronización del volumen web.
-// Si es un dispositivo móvil, ocultamos la barra para evitar confusiones.
 const esDispositivoMovil = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 if (esDispositivoMovil) {
-    let ultimoToque = 0;
+    let tiempoUltimoToque = 0;
 
-    // Asumiendo que la variable de tu reproductor se llama 'video'
-    video.addEventListener("click", function (e) {
+    videoWrapper.addEventListener('touchstart', (e) => {
+        // 1. Evitar que el doble tap interfiera con los controles (volumen, play, barras)
+        const esControl = e.target.closest('button, input, a') || 
+                          e.target.id.includes('slider') || 
+                          e.target.id.includes('btn') || 
+                          e.target.id.includes('progress');
+                          
+        if (esControl) return; // Si se tocó un control, no hacemos la lógica del doble tap
+
         const tiempoActual = new Date().getTime();
-        const tiempoDiferencia = tiempoActual - ultimoToque;
+        const diferenciaTiempo = tiempoActual - tiempoUltimoToque;
 
-        // Si la diferencia entre toques es menor a 300 milisegundos, se considera doble toque
-        if (tiempoDiferencia < 300 && tiempoDiferencia > 0) {
+        // Si la diferencia es menor a 300ms, es un doble toque
+        if (diferenciaTiempo < 300 && diferenciaTiempo > 0) {
+            e.preventDefault(); // Evitamos que el navegador haga zoom nativo
             
-            // Obtener la posición horizontal del toque
-            const toqueX = e.clientX;
-            // Calcular la mitad de la pantalla
-            const mitadPantalla = window.innerWidth / 2;
+            const toqueX = e.changedTouches[0].clientX;
+            const anchoPantalla = window.innerWidth;
+            
+            // 2. Dividimos la pantalla en 3 tercios
+            const tercio = anchoPantalla / 3;
 
-            if (toqueX > mitadPantalla) {
-                // Doble toque en la mitad derecha: adelantar 10 segundos
-                video.currentTime += 10;
+            if (toqueX < tercio) {
+                // ZONA IZQUIERDA (0% al 33%): Retroceder 10 segundos
+                video.currentTime = Math.max(0, video.currentTime - 10);
+            } else if (toqueX > tercio * 2) {
+                // ZONA DERECHA (66% al 100%): Adelantar 10 segundos
+                video.currentTime = Math.min(video.duration || 0, video.currentTime + 10);
             } else {
-                // Doble toque en la mitad izquierda: retroceder 10 segundos
-                video.currentTime -= 10;
+                // ZONA CENTRAL (33% al 66%): Pantalla Completa
+                if (!document.fullscreenElement) {
+                    videoWrapper.requestFullscreen().catch(err => console.error(err));
+                } else {
+                    document.exitFullscreen();
+                }
             }
         }
-
-        ultimoToque = tiempoActual;
-    });
+        tiempoUltimoToque = tiempoActual;
+    }, { passive: false });
 }
